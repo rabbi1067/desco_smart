@@ -76,7 +76,7 @@ export function RegisterForm() {
             <MailCheck className="size-7" aria-hidden="true" />
           </div>
           <p className="text-sm text-muted-foreground">
-            {t("auth.checkEmailDesc")}
+            {t("auth.confirmEmailDesc")}
           </p>
           <Button asChild variant="outline" className="mt-2 w-full">
             <Link href="/login">{t("auth.backToLogin")}</Link>

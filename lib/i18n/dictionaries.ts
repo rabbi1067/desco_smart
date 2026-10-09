@@ -307,6 +307,8 @@ export const en = {
   "auth.checkEmail": "Check your email",
   "auth.checkEmailDesc":
     "We've sent a password reset link. The link expires shortly for security.",
+  "auth.confirmEmailDesc":
+    "We've sent a confirmation link to your email. Click it, then sign in to your dashboard.",
 
   // ---- Validation -----------------------------------------------------------
   "validation.required": "This field is required",
@@ -1187,6 +1189,8 @@ export const bn: Record<TranslationKey, string> = {
   "auth.checkEmail": "ইমেইল দেখুন",
   "auth.checkEmailDesc":
     "আমরা একটি পাসওয়ার্ড রিসেট লিঙ্ক পাঠিয়েছি। নিরাপত্তার জন্য লিঙ্কটির মেয়াদ স্বল্প।",
+  "auth.confirmEmailDesc":
+    "আপনার ইমেইলে একটি নিশ্চিতকরণ লিঙ্ক পাঠিয়েছি। লিঙ্কে ক্লিক করে তারপর ড্যাশবোর্ডে সাইন ইন করুন।",
 
   "validation.required": "এই ঘরটি পূরণ করা আবশ্যক",
   "validation.email": "সঠিক ইমেইল ঠিকানা দিন",
