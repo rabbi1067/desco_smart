@@ -111,6 +111,8 @@ export async function registerAction(
   });
 
   if (error) {
+    // Server log only — the browser keeps the generic message.
+    console.error("[auth] signUp failed:", error.message);
     if (error.message.toLowerCase().includes("already registered")) {
       return { success: false, error: "auth.invalidCredentials" };
     }
