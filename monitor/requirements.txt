@@ -1,0 +1,9 @@
+# DESCO Smart monitoring worker — Python dependencies.
+#
+# The worker deliberately relies on the standard library for everything it can
+# (smtplib/email for mail, json, datetime, ...). The single third-party need is
+# an HTTP client: `requests` (which also provides urllib3, used to suppress the
+# insecure-request warning for the DESCO host only).
+#
+# We do NOT depend on supabase-py — a few plain PostgREST calls do not warrant it.
+requests>=2.31,<3

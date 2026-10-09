@@ -1,0 +1,74 @@
+# =============================================================================
+# DESCO Smart — scheduled balance monitor
+#
+# Runs the Python worker (monitor/) that polls DESCO for every actively-monitored
+# meter, records readings in Supabase, and emails owners on threshold breaches or
+# recoveries (subject to the dedup policy in monitor/alerting.py).
+#
+# REQUIRED repository secrets
+#   (Settings -> Secrets and variables -> Actions -> New repository secret):
+#     SUPABASE_URL                REST base, e.g. https://xxxx.supabase.co
+#     SUPABASE_SERVICE_ROLE_KEY   service-role key (bypasses RLS; server-only)
+#
+# OPTIONAL secrets (email; if unset, alerts are recorded but not emailed):
+#     SMTP_HOST                   SMTP server (default smtp.gmail.com)
+#     SMTP_PORT                   SMTP port (default 587, STARTTLS)
+#     EMAIL_USER                  SMTP username / from address
+#     EMAIL_PASS                  SMTP password / app-specific password
+#     EMAIL_FROM_NAME             sender display name (default "DESCO Smart")
+#
+# No secret is hardcoded here — every value is injected from ${{ secrets.* }}.
+# =============================================================================
+
+name: DESCO Balance Monitor
+
+on:
+  schedule:
+    # Every 6 hours (at minute 0). The comment and the cron intentionally agree.
+    - cron: '0 */6 * * *'
+  # Allow running on demand from the Actions tab.
+  workflow_dispatch: {}
+
+# Prevent overlapping runs: if a run is already in progress, queue the next one
+# rather than running two monitors against the same meters at once. We do NOT
+# cancel the in-flight run — letting it finish avoids half-written state.
+concurrency:
+  group: desco-monitor
+  cancel-in-progress: false
+
+# Least privilege: the worker only talks to Supabase/DESCO/SMTP over the network,
+# it needs no write access to the repository.
+permissions:
+  contents: read
+
+jobs:
+  monitor:
+    name: Poll balances and dispatch alerts
+    runs-on: ubuntu-latest
+    # A full batch is minutes; cap it so a stuck upstream can't hang the runner.
+    timeout-minutes: 20
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: 'pip'
+          cache-dependency-path: monitor/requirements.txt
+
+      - name: Install dependencies
+        run: python -m pip install -r monitor/requirements.txt
+
+      - name: Run monitor
+        run: python -m monitor.main
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          SMTP_HOST: ${{ secrets.SMTP_HOST }}
+          SMTP_PORT: ${{ secrets.SMTP_PORT }}
+          EMAIL_USER: ${{ secrets.EMAIL_USER }}
+          EMAIL_PASS: ${{ secrets.EMAIL_PASS }}
+          EMAIL_FROM_NAME: ${{ secrets.EMAIL_FROM_NAME }}
