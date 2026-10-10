@@ -64,7 +64,7 @@ export function RechargeModal({
         {trigger || (
           <Button variant="default" className="gap-2 bg-primary font-semibold shadow">
             <Zap className="size-4" />
-            Quick Recharge / রিচার্জ
+            Quick Recharge
           </Button>
         )}
       </DialogTrigger>
@@ -72,7 +72,7 @@ export function RechargeModal({
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2 text-xl font-bold">
             <Zap className="size-5 text-primary" />
-            DESCO Prepaid Recharge Guide / রিচার্জ পদ্ধতি
+            DESCO Prepaid Recharge Guide
           </DialogTitle>
           <DialogDescription>
             Official instant recharge methods for DESCO prepaid electricity meters.
@@ -166,8 +166,8 @@ export function RechargeModal({
                     </code>
                   </li>
                   <li>
-                    Tap on <strong>Pay Bill (পে বিল)</strong> ➔ Select{" "}
-                    <strong>Electricity (বিদ্যুৎ)</strong>
+                    Tap on <strong>Pay Bill</strong> ➔ Select{" "}
+                    <strong>Electricity</strong>
                   </li>
                   <li>
                     Choose <strong>DESCO (Prepaid)</strong> from the biller list.
@@ -203,7 +203,7 @@ export function RechargeModal({
                     </code>
                   </li>
                   <li>
-                    Select <strong>Bill Pay (বিল পে)</strong> ➔ Electricity
+                    Select <strong>Bill Pay</strong> ➔ Electricity
                   </li>
                   <li>
                     Select <strong>DESCO Prepaid</strong>

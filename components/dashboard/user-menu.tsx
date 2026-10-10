@@ -85,14 +85,6 @@ export function UserMenu({
             {t("nav.settings")}
           </Link>
         </DropdownMenuItem>
-        {isAdmin && (
-          <DropdownMenuItem asChild>
-            <Link href="/admin" className="cursor-pointer gap-2">
-              <ShieldCheck className="size-4" aria-hidden="true" />
-              {t("admin.executiveControl")}
-            </Link>
-          </DropdownMenuItem>
-        )}
         <DropdownMenuSeparator />
         <DropdownMenuItem
           onSelect={(event) => {

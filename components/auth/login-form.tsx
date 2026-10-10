@@ -53,7 +53,10 @@ export function LoginForm() {
 
     if (result.success) {
       toast.success(t("auth.loginSuccess"));
-      const dest = safeRedirect(searchParams.get("redirectTo"));
+      const paramRedirect = searchParams.get("redirectTo");
+      const dest = paramRedirect
+        ? safeRedirect(paramRedirect)
+        : (result.data?.defaultRedirect || "/dashboard");
       window.location.href = dest;
       return;
     }
@@ -97,7 +100,7 @@ export function LoginForm() {
                 {t("auth.registerSuccessNoConfirm")}
               </p>
               <p className="text-gray-300 mt-0.5">
-                অনুগ্রহ করে পাসওয়ার্ড দিয়ে সাইন ইন সম্পন্ন করুন। (Please enter your password to sign in)
+                Please enter your password to complete sign in.
               </p>
             </div>
           </div>

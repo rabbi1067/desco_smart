@@ -71,7 +71,7 @@ export default async function AdminLayout({
 
       <footer className="border-t border-border/60 py-4">
         <p className="px-4 text-center text-xs text-muted-foreground sm:px-6">
-          <Link href="/dashboard" className="hover:text-foreground">
+          <Link href="/admin" className="hover:text-foreground">
             DESCO SMART
           </Link>{" "}
           · {t("admin.executiveControl")}

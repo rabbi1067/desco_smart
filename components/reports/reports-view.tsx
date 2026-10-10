@@ -744,7 +744,7 @@ export function ReportsView({
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div>
               <h3 className="text-base font-semibold text-foreground">
-                DESCO Recharge Logs / রিচার্জ হিস্ট্রি
+                DESCO Recharge Logs
               </h3>
               <p className="text-xs text-muted-foreground">
                 All top-ups credited to your prepaid electricity meter
@@ -766,7 +766,7 @@ export function ReportsView({
                 trigger={
                   <Button className="gap-2 bg-primary font-semibold shadow">
                     <Zap className="size-4" />
-                    New Recharge / রিচার্জ করুন
+                    New Recharge
                   </Button>
                 }
               />

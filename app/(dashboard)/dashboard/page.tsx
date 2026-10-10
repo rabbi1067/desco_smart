@@ -97,7 +97,7 @@ export default async function DashboardPage() {
               trigger={
                 <Button variant="default" className="gap-2 bg-primary font-semibold shadow-sm">
                   <Zap className="size-4" />
-                  Quick Recharge / রিচার্জ
+                  Quick Recharge
                 </Button>
               }
             />
@@ -134,7 +134,7 @@ export default async function DashboardPage() {
                   <Button asChild size="lg" className="gap-2 shadow font-semibold">
                     <Link href="/meters">
                       <Plus className="size-4" />
-                      Add Meter Now / মিটার যুক্ত করুন
+                      Add Meter Now
                     </Link>
                   </Button>
                 </div>
@@ -203,7 +203,7 @@ export default async function DashboardPage() {
                     trigger={
                       <Button variant="destructive" size="sm" className="w-full gap-1.5 font-bold shadow">
                         <Zap className="size-4" />
-                        Recharge Immediately / রিচার্জ করুন
+                        Recharge Immediately
                       </Button>
                     }
                   />
@@ -236,7 +236,7 @@ export default async function DashboardPage() {
                     trigger={
                       <Button variant="default" size="sm" className="w-full gap-1.5 font-semibold bg-amber-600 hover:bg-amber-700 text-white">
                         <Zap className="size-4" />
-                        Top-up Balance / রিচার্জ করুন
+                        Top-up Balance
                       </Button>
                     }
                   />

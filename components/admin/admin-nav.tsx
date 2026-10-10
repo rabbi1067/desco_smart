@@ -2,7 +2,6 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { ArrowLeft } from "lucide-react";
 import { useTranslation } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
 import { isNavItemActive } from "@/components/dashboard/nav-config";
@@ -60,22 +59,6 @@ export function AdminNav({
             );
           })}
         </ul>
-      </div>
-
-      {/* Escape hatch back to the standard user app. */}
-      <div className="mt-auto border-t border-border/60 pt-4">
-        <Link
-          href="/dashboard"
-          onClick={onNavigate}
-          className={cn(
-            "flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors",
-            "text-muted-foreground hover:bg-accent hover:text-foreground",
-            "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
-          )}
-        >
-          <ArrowLeft className="size-4 shrink-0" aria-hidden="true" />
-          <span>{t("admin.backToUserDashboard")}</span>
-        </Link>
       </div>
     </nav>
   );

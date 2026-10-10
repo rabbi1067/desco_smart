@@ -22,7 +22,7 @@ export default function DashboardError({
         <AlertTriangle className="size-7" aria-hidden="true" />
       </div>
       <h2 className="mt-4 text-xl font-bold tracking-tight">
-        Failed to load dashboard / ড্যাশবোর্ড লোড হতে সমস্যা হয়েছে
+        Failed to load dashboard
       </h2>
       <p className="mt-2 max-w-md text-sm text-muted-foreground">
         An error occurred while loading this page. Please try refreshing or check your connection.

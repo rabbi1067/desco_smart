@@ -24,7 +24,9 @@ import type { ActionResult } from "@/types";
  * are registered.
  */
 
-export async function loginAction(input: unknown): Promise<ActionResult> {
+export async function loginAction(
+  input: unknown,
+): Promise<ActionResult<{ defaultRedirect: string }>> {
   // Throttle credential-guessing per client IP before touching Supabase Auth.
   const ip = await getClientIp();
   if (!rateLimit(`login:${ip}`, 10, 60_000).ok) {
@@ -47,12 +49,6 @@ export async function loginAction(input: unknown): Promise<ActionResult> {
   });
 
   if (error || !data.user) {
-    // Log the real reason server-side only (never to the browser) so a
-    // misconfigured Supabase URL / unconfirmed email can be diagnosed from
-    // the server logs. The browser still gets a safe, generic message —
-    // except for the unconfirmed-email case, where telling the user to check
-    // their inbox is genuinely helpful and reveals nothing to an attacker
-    // (they already supplied a valid email+password to hit that branch).
     const raw = (error?.message ?? "no-user").toLowerCase();
     console.error("[auth] signIn failed:", error?.message ?? "no user");
     if (raw.includes("email not confirmed") || raw.includes("not confirmed")) {
@@ -65,7 +61,6 @@ export async function loginAction(input: unknown): Promise<ActionResult> {
     ) {
       return { success: false, error: "error.networkUnreachable" };
     }
-    // Deliberately uniform otherwise: never reveal whether the email exists.
     return { success: false, error: "auth.invalidCredentials" };
   }
 
@@ -76,8 +71,23 @@ export async function loginAction(input: unknown): Promise<ActionResult> {
     entityType: "auth",
   });
 
+  // Query profile role to route admins straight to /admin and regular users to /dashboard
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("role")
+    .eq("id", data.user.id)
+    .single();
+
+  const role = profile?.role ?? "user";
+  const defaultRedirect =
+    role === "admin" || role === "super_admin" ? "/admin" : "/dashboard";
+
   revalidatePath("/", "layout");
-  return { success: true, data: undefined, message: "auth.loginSuccess" };
+  return {
+    success: true,
+    data: { defaultRedirect },
+    message: "auth.loginSuccess",
+  };
 }
 
 export async function registerAction(

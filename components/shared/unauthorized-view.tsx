@@ -23,7 +23,7 @@ export function UnauthorizedView() {
           <Database className="size-8" aria-hidden="true" />
         </div>
         <h1 className="mt-6 text-2xl font-bold tracking-tight sm:text-3xl">
-          User Profile Not Found / প্রোফাইল পাওয়া যায়নি
+          User Profile Not Found
         </h1>
         <p className="mt-2 max-w-md text-sm text-muted-foreground">
           Your account was authenticated, but no database profile could be loaded.

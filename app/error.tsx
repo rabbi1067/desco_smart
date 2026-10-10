@@ -36,8 +36,7 @@ export default function Error({
         Something went wrong
       </h1>
       <p className="mt-2 max-w-md text-sm text-muted-foreground">
-        An unexpected error occurred. Please try again. / কোনো সমস্যা হয়েছে।
-        আবার চেষ্টা করুন।
+        An unexpected error occurred. Please try again.
       </p>
       {error.digest && (
         <p className="mt-2 text-xs text-muted-foreground/70 tabular">

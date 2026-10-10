@@ -106,7 +106,7 @@ export function DashboardCharts({
               <div>
                 <CardTitle className="flex items-center gap-2 text-base font-semibold">
                   <TrendingUp className="size-4 text-primary" />
-                  Balance Trajectory / ব্যালেন্স ট্রেন্ড
+                  Balance Trajectory
                 </CardTitle>
                 <CardDescription className="text-xs">
                   Recorded prepaid electricity balance progression
@@ -208,7 +208,7 @@ export function DashboardCharts({
               <div>
                 <CardTitle className="flex items-center gap-2 text-base font-semibold">
                   <Zap className="size-4 text-amber-500" />
-                  Daily Burn Rate / দৈনিক খরচ
+                  Daily Burn Rate
                 </CardTitle>
                 <CardDescription className="text-xs">
                   Daily electricity consumption in Taka (BDT)
@@ -287,7 +287,7 @@ export function DashboardCharts({
           <div className="flex items-center justify-between">
             <div>
               <h3 className="text-base font-semibold tracking-tight text-foreground">
-                Connected Meter Fleet / মিটারসমূহ
+                Connected Meter Fleet
               </h3>
               <p className="text-xs text-muted-foreground">
                 Real-time balance, threshold health bars, and quick recharge access
