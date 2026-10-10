@@ -248,3 +248,12 @@ class SupabaseClient:
             "message": message,
         }
         self._request("POST", "notifications", json=payload, prefer="return=minimal")
+
+    def get_smtp_settings(self) -> Dict[str, Any]:
+        """Fetch system_settings for SMTP credentials configured in the UI."""
+        try:
+            response = self._request("GET", "system_settings", params={"select": "key,value"})
+            rows = self._rows(response)
+            return {r.get("key"): r.get("value") for r in rows if r.get("key")}
+        except Exception:
+            return {}

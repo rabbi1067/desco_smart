@@ -29,7 +29,13 @@ type StatusFilter = "all" | MeterStatus;
  * three shared dialogs. Filtering is done client-side over a list that is small
  * by nature (one household's meters), so there's no need to round-trip.
  */
-export function MetersView({ meters }: { meters: Meter[] }) {
+export function MetersView({
+  meters,
+  userEmail,
+}: {
+  meters: Meter[];
+  userEmail?: string;
+}) {
   const { t } = useTranslation();
   const [query, setQuery] = useState("");
   const [status, setStatus] = useState<StatusFilter>("all");
@@ -141,13 +147,18 @@ export function MetersView({ meters }: { meters: Meter[] }) {
       )}
 
       {/* Shared dialogs */}
-      <MeterFormDialog open={addOpen} onOpenChange={setAddOpen} />
+      <MeterFormDialog
+        open={addOpen}
+        onOpenChange={setAddOpen}
+        userEmail={userEmail}
+      />
 
       <MeterFormDialog
         key={editTarget?.id ?? "edit"}
         open={editTarget !== null}
         onOpenChange={(open) => !open && setEditTarget(null)}
         meter={editTarget ?? undefined}
+        userEmail={userEmail}
       />
 
       {deleteTarget && (

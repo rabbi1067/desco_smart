@@ -18,7 +18,11 @@ import { useTranslation } from "@/lib/i18n";
  * Mobile navigation drawer for the admin shell. Shown only below `lg`, where the
  * persistent sidebar is hidden. Tapping a link closes the sheet via `onNavigate`.
  */
-export function AdminMobileNav() {
+export function AdminMobileNav({
+  isSuperAdmin = true,
+}: {
+  isSuperAdmin?: boolean;
+}) {
   const { t } = useTranslation();
   const [open, setOpen] = useState(false);
 
@@ -41,7 +45,7 @@ export function AdminMobileNav() {
           </SheetTitle>
         </SheetHeader>
         <div className="mt-4 flex flex-1 flex-col">
-          <AdminNav onNavigate={() => setOpen(false)} />
+          <AdminNav isSuperAdmin={isSuperAdmin} onNavigate={() => setOpen(false)} />
         </div>
       </SheetContent>
     </Sheet>

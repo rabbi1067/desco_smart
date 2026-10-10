@@ -22,7 +22,11 @@ export default async function AdminUsersPage() {
         title={t("admin.users.title")}
         description={t("admin.users.subtitle")}
       />
-      <AdminUsersTable users={users} currentUserId={profile?.id ?? ""} />
+      <AdminUsersTable
+        users={users}
+        currentUserId={profile?.id ?? ""}
+        currentUserRole={profile?.role}
+      />
     </div>
   );
 }

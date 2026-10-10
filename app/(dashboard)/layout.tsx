@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { requireProfile, isAdmin as checkIsAdmin } from "@/lib/auth";
-import { getUnreadCount } from "@/lib/services/notifications";
+import { getUnreadCount, getNotifications } from "@/lib/services/notifications";
 import { Logo } from "@/components/shared/logo";
 import { LanguageToggle } from "@/components/shared/language-toggle";
 import { ThemeToggle } from "@/components/shared/theme-toggle";
@@ -22,9 +22,10 @@ export default async function DashboardLayout({
   children: React.ReactNode;
 }) {
   const profile = await requireProfile();
-  const [admin, unreadCount] = await Promise.all([
+  const [admin, unreadCount, recentNotifications] = await Promise.all([
     checkIsAdmin(),
     getUnreadCount(),
+    getNotifications(6),
   ]);
 
   return (
@@ -35,7 +36,7 @@ export default async function DashboardLayout({
           <MobileNav isAdmin={admin} />
           <Logo />
           <div className="ml-auto flex items-center gap-1.5">
-            <NotificationBell unreadCount={unreadCount} />
+            <NotificationBell unreadCount={unreadCount} notifications={recentNotifications} />
             <LanguageToggle />
             <ThemeToggle />
             <UserMenu

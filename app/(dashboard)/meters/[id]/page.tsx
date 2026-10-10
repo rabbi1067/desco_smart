@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
+import { getCurrentProfile } from "@/lib/auth";
 import { getMeterById, getBalanceHistory, getAlerts } from "@/lib/services/meters";
 import { getMeterAnalytics } from "@/lib/services/analytics";
 import { MeterDetail } from "@/components/meters/meter-detail";
@@ -17,7 +18,10 @@ export default async function MeterDetailPage({
 
   // Ownership is enforced in getMeterById (RLS + explicit user_id filter); a
   // meter that doesn't exist or isn't the caller's returns null → 404.
-  const meter = await getMeterById(id);
+  const [profile, meter] = await Promise.all([
+    getCurrentProfile(),
+    getMeterById(id),
+  ]);
   if (!meter) notFound();
 
   // Fetch the detail panels in parallel — all scoped to this user's meter.
@@ -33,6 +37,7 @@ export default async function MeterDetailPage({
       readings={readings}
       alerts={alerts}
       analytics={analytics}
+      userEmail={profile?.email}
     />
   );
 }

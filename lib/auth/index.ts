@@ -87,9 +87,17 @@ export async function isAuthenticated(): Promise<boolean> {
   return (await getCurrentUser()) !== null;
 }
 
+export async function isSuperAdmin(): Promise<boolean> {
+  const profile = await getCurrentProfile();
+  return profile?.role === "super_admin" && profile?.is_active !== false;
+}
+
 export async function isAdmin(): Promise<boolean> {
   const profile = await getCurrentProfile();
-  return profile?.role === "super_admin";
+  return (
+    (profile?.role === "admin" || profile?.role === "super_admin") &&
+    profile?.is_active !== false
+  );
 }
 
 export async function getUserRole(): Promise<UserRole | null> {
@@ -107,7 +115,7 @@ export async function requireAuth() {
   return user;
 }
 
-/** Guards a page/action that requires a profile row to exist. */
+/** Guards a page/action that requires an active profile row to exist. */
 export async function requireProfile(): Promise<Profile> {
   const user = await getCurrentUser();
   if (!user) redirect("/login");
@@ -118,18 +126,34 @@ export async function requireProfile(): Promise<Profile> {
     // redirecting to /login causes an infinite redirect loop with middleware.
     redirect("/unauthorized?error=profile_not_found");
   }
+
+  if (profile.is_active === false) {
+    redirect("/unauthorized?error=account_blocked");
+  }
+
   return profile;
 }
 
 /**
- * Guards Super Admin surfaces.
- * A signed-in non-admin is sent to /unauthorized rather than /login, so we
- * don't imply that re-authenticating would grant access.
+ * Guards surfaces requiring either Admin or Super Admin privileges.
+ * A signed-in non-admin or blocked user is sent to /unauthorized.
  */
 export async function requireAdmin(): Promise<Profile> {
-  const profile = await getCurrentProfile();
-  if (!profile) redirect("/login");
-  if (profile.role !== "super_admin") redirect("/unauthorized");
+  const profile = await requireProfile();
+  if (profile.role !== "admin" && profile.role !== "super_admin") {
+    redirect("/unauthorized");
+  }
+  return profile;
+}
+
+/**
+ * Guards surfaces strictly requiring Super Admin privileges (e.g. system settings, SMTP app password).
+ */
+export async function requireSuperAdmin(): Promise<Profile> {
+  const profile = await requireProfile();
+  if (profile.role !== "super_admin") {
+    redirect("/unauthorized");
+  }
   return profile;
 }
 

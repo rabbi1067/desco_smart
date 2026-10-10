@@ -15,9 +15,19 @@ import { ADMIN_NAV_ITEMS } from "./admin-nav-config";
  * is a convenience surface only — every /admin route independently calls
  * `requireAdmin`, so hiding or showing links is never the security boundary.
  */
-export function AdminNav({ onNavigate }: { onNavigate?: () => void }) {
+export function AdminNav({
+  isSuperAdmin = true,
+  onNavigate,
+}: {
+  isSuperAdmin?: boolean;
+  onNavigate?: () => void;
+}) {
   const { t } = useTranslation();
   const pathname = usePathname();
+
+  const navItems = ADMIN_NAV_ITEMS.filter(
+    (item) => !item.superAdminOnly || isSuperAdmin,
+  );
 
   return (
     <nav className="flex flex-1 flex-col gap-6" aria-label={t("admin.administration")}>
@@ -26,7 +36,7 @@ export function AdminNav({ onNavigate }: { onNavigate?: () => void }) {
           {t("admin.executiveControl")}
         </p>
         <ul className="space-y-0.5">
-          {ADMIN_NAV_ITEMS.map((item) => {
+          {navItems.map((item) => {
             const active = isNavItemActive(pathname, item);
             const Icon = item.icon;
             return (

@@ -5,7 +5,7 @@
  * sync — the DB is authoritative, this file is the compile-time contract.
  */
 
-export type UserRole = "user" | "super_admin";
+export type UserRole = "user" | "admin" | "super_admin";
 
 /**
  * Lifecycle state of a meter, derived from balance vs. its thresholds.
@@ -69,6 +69,7 @@ export interface Meter {
   status: MeterStatus;
   monitoring_enabled: boolean;
   email_alert_enabled: boolean;
+  alert_email?: string | null;
   last_checked_at: string | null;
   last_error: string | null;
   /** Metadata returned by DESCO (tariff, load, address). Read-only, synced. */
@@ -145,6 +146,7 @@ export interface AuditLog {
 export type AuditAction =
   | "USER_CREATED"
   | "USER_UPDATED"
+  | "USER_DELETED"
   | "METER_CREATED"
   | "METER_UPDATED"
   | "METER_DELETED"
@@ -160,6 +162,17 @@ export interface SystemSetting {
   value: string;
   description: string | null;
   updated_at: string;
+}
+
+export interface SmtpSettings {
+  host: string;
+  port: number;
+  user: string;
+  pass: string;
+  fromName: string;
+  secure: boolean;
+  enabled: boolean;
+  configured: boolean;
 }
 
 /** A meter joined with its owner — used only in Super Admin views. */

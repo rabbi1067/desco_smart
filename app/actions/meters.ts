@@ -94,6 +94,7 @@ export async function createMeterAction(
       critical_threshold: data.criticalThreshold,
       monitoring_enabled: data.monitoringEnabled,
       email_alert_enabled: data.emailAlertEnabled,
+      alert_email: data.alertEmail || null,
       current_balance: balance,
       status: deriveStatus(balance, data.threshold, data.criticalThreshold),
       last_checked_at: new Date().toISOString(),
@@ -103,14 +104,41 @@ export async function createMeterAction(
     .select("id")
     .single();
 
-  if (error || !inserted) {
+  let finalInserted = inserted;
+  if (error && error.message.includes("alert_email")) {
+    // Graceful fallback if database schema does not have alert_email column yet
+    const { data: retryInserted, error: retryError } = await supabase
+      .from("meters")
+      .insert({
+        user_id: userId,
+        name: data.name,
+        meter_number: data.meterNumber,
+        account_number: data.accountNumber,
+        threshold: data.threshold,
+        critical_threshold: data.criticalThreshold,
+        monitoring_enabled: data.monitoringEnabled,
+        email_alert_enabled: data.emailAlertEnabled,
+        current_balance: balance,
+        status: deriveStatus(balance, data.threshold, data.criticalThreshold),
+        last_checked_at: new Date().toISOString(),
+        current_month_consumption: verification.data.currentMonthConsumption,
+        reading_time: verification.data.readingTime,
+      })
+      .select("id")
+      .single();
+
+    if (retryError || !retryInserted) {
+      return { success: false, error: safeError(retryError?.message ?? "") };
+    }
+    finalInserted = retryInserted;
+  } else if (error || !finalInserted) {
     return { success: false, error: safeError(error?.message ?? "") };
   }
 
   // The verification call already produced a real reading — store it so the
   // meter's history starts immediately rather than after the next cron run.
   await supabase.from("balance_readings").insert({
-    meter_id: inserted.id,
+    meter_id: finalInserted.id,
     balance,
     reading_time: verification.data.readingTime,
     current_month_consumption: verification.data.currentMonthConsumption,
@@ -124,7 +152,7 @@ export async function createMeterAction(
     actorEmail: profile?.email ?? null,
     action: "METER_CREATED",
     entityType: "meter",
-    entityId: inserted.id,
+    entityId: finalInserted.id,
     // Meter/account numbers are deliberately NOT logged.
     metadata: { name: data.name },
   });
@@ -134,7 +162,7 @@ export async function createMeterAction(
 
   return {
     success: true,
-    data: { id: inserted.id },
+    data: { id: finalInserted.id },
     message: "meterToast.added",
   };
 }
@@ -224,6 +252,7 @@ export async function updateMeterAction(
         critical_threshold: data.criticalThreshold,
         monitoring_enabled: data.monitoringEnabled,
         email_alert_enabled: data.emailAlertEnabled,
+        alert_email: data.alertEmail || null,
         current_balance: freshBalance,
         status: freshStatus,
         last_checked_at: now,
@@ -235,7 +264,31 @@ export async function updateMeterAction(
       .eq("id", data.id)
       .eq("user_id", userId);
 
-    if (error) return { success: false, error: safeError(error.message) };
+    if (error && error.message.includes("alert_email")) {
+      // Fallback if alert_email column not yet present
+      await supabase
+        .from("meters")
+        .update({
+          name: data.name,
+          meter_number: data.meterNumber,
+          account_number: data.accountNumber,
+          threshold: data.threshold,
+          critical_threshold: data.criticalThreshold,
+          monitoring_enabled: data.monitoringEnabled,
+          email_alert_enabled: data.emailAlertEnabled,
+          current_balance: freshBalance,
+          status: freshStatus,
+          last_checked_at: now,
+          last_error: null,
+          current_month_consumption:
+            verification.data.currentMonthConsumption,
+          reading_time: verification.data.readingTime,
+        })
+        .eq("id", data.id)
+        .eq("user_id", userId);
+    } else if (error) {
+      return { success: false, error: safeError(error.message) };
+    }
 
     await supabase.from("balance_readings").insert({
       meter_id: data.id,
@@ -288,12 +341,30 @@ export async function updateMeterAction(
       critical_threshold: data.criticalThreshold,
       monitoring_enabled: data.monitoringEnabled,
       email_alert_enabled: data.emailAlertEnabled,
+      alert_email: data.alertEmail || null,
       status: nextStatus,
     })
     .eq("id", data.id)
     .eq("user_id", userId);
 
-  if (error) return { success: false, error: safeError(error.message) };
+  if (error && error.message.includes("alert_email")) {
+    await supabase
+      .from("meters")
+      .update({
+        name: data.name,
+        meter_number: data.meterNumber,
+        account_number: data.accountNumber,
+        threshold: data.threshold,
+        critical_threshold: data.criticalThreshold,
+        monitoring_enabled: data.monitoringEnabled,
+        email_alert_enabled: data.emailAlertEnabled,
+        status: nextStatus,
+      })
+      .eq("id", data.id)
+      .eq("user_id", userId);
+  } else if (error) {
+    return { success: false, error: safeError(error.message) };
+  }
 
   const profile = await getCurrentProfile();
   await recordAudit({

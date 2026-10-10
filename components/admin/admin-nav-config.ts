@@ -25,6 +25,8 @@ export interface AdminNavItem {
   icon: LucideIcon;
   /** Match the pathname exactly rather than by prefix (used for the index route). */
   exact?: boolean;
+  /** Only visible to Super Admins (hidden from sub-admins) */
+  superAdminOnly?: boolean;
 }
 
 export const ADMIN_NAV_ITEMS: AdminNavItem[] = [
@@ -35,6 +37,6 @@ export const ADMIN_NAV_ITEMS: AdminNavItem[] = [
   { href: "/admin/reports", labelKey: "admin.reportsLedger", icon: FileText },
   { href: "/admin/notifications", labelKey: "admin.notif.title", icon: Bell },
   { href: "/admin/audit-logs", labelKey: "admin.auditLogs", icon: ScrollText },
-  { href: "/admin/email", labelKey: "admin.emailConfig", icon: Mail },
-  { href: "/admin/settings", labelKey: "admin.systemSettings", icon: Settings },
+  { href: "/admin/email", labelKey: "admin.emailConfig", icon: Mail, superAdminOnly: true },
+  { href: "/admin/settings", labelKey: "admin.systemSettings", icon: Settings, superAdminOnly: true },
 ];

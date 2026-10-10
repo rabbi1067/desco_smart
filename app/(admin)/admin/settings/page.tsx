@@ -6,6 +6,7 @@ import {
   SlidersHorizontal,
   UserCog,
 } from "lucide-react";
+import { requireSuperAdmin } from "@/lib/auth";
 import { getAdmins, getSettingsMap } from "@/lib/services/admin";
 import { getServerTranslator } from "@/lib/i18n/server";
 import { PageHeader } from "@/components/shared/page-header";
@@ -25,6 +26,7 @@ export const metadata: Metadata = {
 };
 
 export default async function AdminSettingsPage() {
+  await requireSuperAdmin();
   const [settings, admins] = await Promise.all([getSettingsMap(), getAdmins()]);
   const { t } = await getServerTranslator();
 

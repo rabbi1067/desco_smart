@@ -42,11 +42,14 @@ export function MeterFormDialog({
   open,
   onOpenChange,
   meter,
+  userEmail,
 }: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   /** Present → edit mode; absent → create mode. */
   meter?: Meter;
+  /** Logged-in user's email address used as default alert recipient */
+  userEmail?: string;
 }) {
   const { t } = useTranslation();
   const router = useRouter();
@@ -70,6 +73,7 @@ export function MeterFormDialog({
       criticalThreshold: DEFAULT_CRITICAL_THRESHOLD,
       monitoringEnabled: true,
       emailAlertEnabled: true,
+      alertEmail: userEmail || "",
     },
   });
 
@@ -87,6 +91,7 @@ export function MeterFormDialog({
             criticalThreshold: meter.critical_threshold,
             monitoringEnabled: meter.monitoring_enabled,
             emailAlertEnabled: meter.email_alert_enabled,
+            alertEmail: meter.alert_email || userEmail || "",
           }
         : {
             name: "",
@@ -96,9 +101,10 @@ export function MeterFormDialog({
             criticalThreshold: DEFAULT_CRITICAL_THRESHOLD,
             monitoringEnabled: true,
             emailAlertEnabled: true,
+            alertEmail: userEmail || "",
           },
     );
-  }, [open, meter, reset]);
+  }, [open, meter, userEmail, reset]);
 
   const tk = (msg?: string) => (msg ? t(msg as TranslationKey) : undefined);
 
@@ -228,6 +234,21 @@ export function MeterFormDialog({
               />
             </FormField>
           </div>
+
+          <FormField
+            id="alertEmail"
+            label={t("meterForm.alertEmail")}
+            error={tk(errors.alertEmail?.message)}
+            hint={t("meterForm.alertEmailHint")}
+          >
+            <Input
+              id="alertEmail"
+              type="email"
+              placeholder={t("meterForm.alertEmailPlaceholder")}
+              aria-invalid={!!errors.alertEmail}
+              {...register("alertEmail")}
+            />
+          </FormField>
 
           <Controller
             control={control}

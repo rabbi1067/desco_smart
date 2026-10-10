@@ -19,11 +19,11 @@ export const MAX_THRESHOLD = 100_000;
  * Alert de-duplication window.
  *
  * Policy: while a meter stays in the same alert state, we re-notify at most
- * once per cooldown window. A *state change* (healthy→low, low→critical, or
+ * once per cooldown window (24 hours). A *state change* (healthy→low, low→critical, or
  * recovery) always notifies immediately, bypassing the cooldown. This stops the
  * "same email every scheduled run" problem without hiding genuine escalation.
  */
-export const ALERT_COOLDOWN_HOURS = 12;
+export const ALERT_COOLDOWN_HOURS = 24;
 
 /**
  * Hysteresis buffer for recovery, expressed as a fraction of the threshold.

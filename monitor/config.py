@@ -30,8 +30,8 @@ DEFAULT_LOW_THRESHOLD: float = 300.0
 DEFAULT_CRITICAL_THRESHOLD: float = 100.0
 
 #: While a meter stays in the same alert state we re-notify at most once per this
-#: many hours. A *state change* bypasses the cooldown (see monitor/alerting.py).
-ALERT_COOLDOWN_HOURS: int = 12
+#: many hours (24 hours cooldown). A *state change* bypasses the cooldown (see monitor/alerting.py).
+ALERT_COOLDOWN_HOURS: int = 24
 
 #: Hysteresis buffer for recovery, as a fraction of the threshold. A meter must
 #: climb above ``threshold * (1 + RECOVERY_BUFFER)`` before we call it recovered,
@@ -104,6 +104,29 @@ class Config:
         notifications — it simply does not attempt to send email.
         """
         return bool(self.email_user and self.email_pass)
+
+    def with_smtp_overrides(self, db_settings: dict) -> "Config":
+        """Return a copy of Config augmented with database system_settings."""
+        host = db_settings.get("smtp_host") or self.smtp_host
+        port_raw = db_settings.get("smtp_port")
+        port = self.smtp_port
+        if port_raw:
+            try:
+                port = int(str(port_raw).strip())
+            except ValueError:
+                pass
+        user = db_settings.get("smtp_user") or self.email_user
+        password = db_settings.get("smtp_pass") or self.email_pass
+        from_name = db_settings.get("smtp_from_name") or self.email_from_name
+        return Config(
+            supabase_url=self.supabase_url,
+            supabase_service_role_key=self.supabase_service_role_key,
+            smtp_host=host,
+            smtp_port=port,
+            email_user=user,
+            email_pass=password,
+            email_from_name=from_name,
+        )
 
 
 def _get_int_env(name: str, default: int) -> int:

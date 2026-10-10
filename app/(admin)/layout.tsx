@@ -30,14 +30,16 @@ export default async function AdminLayout({
     getServerTranslator(),
   ]);
 
+  const isSuper = profile.role === "super_admin";
+
   return (
     <div className="flex min-h-dvh flex-col">
       <header className="sticky top-0 z-40 border-b border-border/60 bg-background/80 backdrop-blur supports-[backdrop-filter]:bg-background/60">
         <div className="flex h-16 items-center gap-3 px-4 sm:px-6">
-          <AdminMobileNav />
+          <AdminMobileNav isSuperAdmin={isSuper} />
           <Logo />
           <Badge variant="info" className="hidden sm:inline-flex">
-            {t("admin.badge")}
+            {isSuper ? t("admin.superAdmin") : t("admin.badge")}
           </Badge>
           <div className="ml-auto flex items-center gap-1.5">
             <NotificationBell unreadCount={unreadCount} />
@@ -56,7 +58,7 @@ export default async function AdminLayout({
       <div className="flex flex-1">
         <aside className="sticky top-16 hidden h-[calc(100dvh-4rem)] w-64 shrink-0 border-r border-border/60 lg:flex">
           <div className="flex h-full w-full flex-col overflow-y-auto p-4">
-            <AdminNav />
+            <AdminNav isSuperAdmin={isSuper} />
           </div>
         </aside>
 

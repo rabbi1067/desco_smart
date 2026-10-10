@@ -1,7 +1,9 @@
 import type { Metadata } from "next";
 import { getServerTranslator } from "@/lib/i18n/server";
+import { getCurrentProfile } from "@/lib/auth";
 import { getMeters } from "@/lib/services/meters";
 import { getReport } from "@/lib/services/reports";
+import { getRechargeHistory, type DescoRecharge } from "@/lib/services/desco";
 import { reportFilterSchema } from "@/lib/validations";
 import { toISODate, daysAgo } from "@/lib/utils";
 import { PageHeader } from "@/components/shared/page-header";
@@ -9,7 +11,7 @@ import { ReportsView } from "@/components/reports/reports-view";
 import type { ReportFilters } from "@/types";
 
 export const metadata: Metadata = {
-  title: "Reports",
+  title: "Reports & Invoices",
 };
 
 export default async function ReportsPage({
@@ -21,17 +23,17 @@ export default async function ReportsPage({
     from?: string;
     to?: string;
     status?: string;
+    tab?: string;
   }>;
 }) {
   const { t } = await getServerTranslator();
   const params = await searchParams;
 
-  // Meters power the filter dropdown and gate the meter filter to owned rows.
-  const meters = await getMeters();
+  const [profile, meters] = await Promise.all([
+    getCurrentProfile(),
+    getMeters(),
+  ]);
 
-  // Build a candidate filter from the URL, falling back to a sensible 30-day
-  // window, then validate. Anything invalid collapses to the defaults so the
-  // page can never crash on a hand-edited query string.
   const defaults = {
     type: "balance_history" as const,
     meterId: "",
@@ -56,15 +58,40 @@ export default async function ReportsPage({
     filters.meterId = "";
   }
 
+  // Fetch telemetry report data
   const data = await getReport(filters);
+
+  // Fetch recharge history for the selected meter or first meter in the fleet
+  const activeMeter = filters.meterId
+    ? meters.find((m) => m.id === filters.meterId)
+    : meters[0];
+
+  let recharges: DescoRecharge[] = [];
+  if (activeMeter) {
+    const rechargeResult = await getRechargeHistory(
+      activeMeter.account_number,
+      activeMeter.meter_number,
+      filters.dateFrom,
+      filters.dateTo,
+    );
+    if (rechargeResult.ok) {
+      recharges = rechargeResult.data;
+    }
+  }
 
   return (
     <div className="space-y-8">
-      <PageHeader title={t("reports.title")} description={t("reports.subtitle")} />
+      <PageHeader
+        title={`${t("reports.title")} & Invoices / রিপোর্ট ও ইনভয়েস`}
+        description={t("reports.subtitle")}
+      />
       <ReportsView
-        meters={meters.map((m) => ({ id: m.id, name: m.name }))}
+        profile={profile}
+        meters={meters}
         filters={filters}
         data={data}
+        recharges={recharges}
+        initialTab={params.tab || "invoice"}
       />
     </div>
   );

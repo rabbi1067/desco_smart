@@ -119,12 +119,21 @@ def main() -> int:
         _log(f"configuration error: {exc}")
         return 1
 
+    supabase = SupabaseClient(config)
+
+    # Dynamic DB settings override: pick up SMTP app password configured by Super Admin in UI
+    db_smtp = supabase.get_smtp_settings()
+    if db_smtp:
+        config = config.with_smtp_overrides(db_smtp)
+        if db_smtp.get("smtp_enabled") == "false":
+            _log("email gateway is disabled by Super Admin in system settings")
+
     if not config.email_configured:
         # Not fatal: readings and in-app notifications still happen; only email
         # delivery is skipped. Logged once, without any secret.
         _log("email not configured (EMAIL_USER/EMAIL_PASS unset); alerts will be recorded but not emailed")
-
-    supabase = SupabaseClient(config)
+    else:
+        _log(f"email gateway configured: host={config.smtp_host}:{config.smtp_port} sender={config.email_user}")
 
     try:
         meters = supabase.get_active_meters()
@@ -330,20 +339,24 @@ def _handle_alert(
         _log(f"meter {meter_id}: alert {decision} recorded, email skipped ({reason})")
         return
 
-    owner = supabase.get_owner(user_id)
-    if not owner or not owner.get("email"):
+    target_email = str(meter.get("alert_email") or "").strip()
+    owner = supabase.get_owner(user_id) if user_id else None
+    if not target_email and owner and owner.get("email"):
+        target_email = str(owner["email"]).strip()
+
+    if not target_email:
         if alert_id:
-            supabase.update_alert_sent(alert_id, status="skipped", error_message="owner email unavailable")
+            supabase.update_alert_sent(alert_id, status="skipped", error_message="recipient email unavailable")
         stats.alerts_skipped += 1
-        _log(f"meter {meter_id}: alert {decision} recorded, email skipped (no owner email)")
+        _log(f"meter {meter_id}: alert {decision} recorded, email skipped (no recipient email)")
         return
 
-    ok, error = _deliver_email(config, owner, meter, decision, balance, threshold, critical)
+    ok, error = _deliver_email(config, target_email, owner, meter, decision, balance, threshold, critical)
     if ok:
         if alert_id:
             supabase.update_alert_sent(alert_id, status="sent", sent_at=_now_iso())
         stats.alerts_emailed += 1
-        _log(f"meter {meter_id}: alert {decision} emailed")
+        _log(f"meter {meter_id}: alert {decision} emailed to {target_email[:3]}***")
     else:
         if alert_id:
             supabase.update_alert_sent(alert_id, status="failed", error_message=error)
@@ -386,7 +399,8 @@ def _email_allowed(
 
 def _deliver_email(
     config: Config,
-    owner: Dict[str, Any],
+    to_email: str,
+    owner: Optional[Dict[str, Any]],
     meter: Dict[str, Any],
     decision: str,
     balance: float,
@@ -394,8 +408,7 @@ def _deliver_email(
     critical: float,
 ) -> Tuple[bool, Optional[str]]:
     """Dispatch to the correct notifier function for the decision."""
-    to_email = owner["email"]
-    to_name = owner.get("full_name")
+    to_name = (owner or {}).get("full_name") or "DESCO Customer"
     meter_name = meter.get("name") or "Your meter"
     meter_number = meter.get("meter_number") or ""
 

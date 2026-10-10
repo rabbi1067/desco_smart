@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { getCurrentProfile } from "@/lib/auth";
 import { getServerTranslator } from "@/lib/i18n/server";
 import { getMeters } from "@/lib/services/meters";
 import { PageHeader } from "@/components/shared/page-header";
@@ -16,13 +17,16 @@ export const metadata: Metadata = {
  * data — an account with no meters gets the empty state, never placeholders.
  */
 export default async function MetersPage() {
-  const { t } = await getServerTranslator();
-  const meters = await getMeters();
+  const [profile, { t }, meters] = await Promise.all([
+    getCurrentProfile(),
+    getServerTranslator(),
+    getMeters(),
+  ]);
 
   return (
     <div className="space-y-8">
       <PageHeader title={t("meters.title")} description={t("meters.subtitle")} />
-      <MetersView meters={meters} />
+      <MetersView meters={meters} userEmail={profile?.email} />
     </div>
   );
 }

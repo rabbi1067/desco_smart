@@ -73,11 +73,13 @@ export function MeterDetail({
   readings,
   alerts,
   analytics,
+  userEmail,
 }: {
   meter: Meter;
   readings: BalanceReading[];
   alerts: Alert[];
   analytics: AnalyticsData;
+  userEmail?: string;
 }) {
   const { t } = useTranslation();
   const router = useRouter();
@@ -387,6 +389,7 @@ export function MeterDetail({
         open={editOpen}
         onOpenChange={setEditOpen}
         meter={meter}
+        userEmail={userEmail}
       />
       <DeleteMeterDialog
         open={deleteOpen}

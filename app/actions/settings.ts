@@ -3,13 +3,16 @@
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { getAuthedUserId, getCurrentProfile, isAdmin } from "@/lib/auth";
+import { getAuthedUserId, getCurrentProfile, isSuperAdmin } from "@/lib/auth";
 import { recordAudit } from "@/lib/services/audit";
+import { saveSmtpSettings, testSmtpConnection } from "@/lib/services/smtp";
 import {
   appearanceSchema,
   changePasswordSchema,
   notificationPreferencesSchema,
+  smtpSettingsSchema,
   systemSettingsSchema,
+  testEmailSchema,
   toFieldErrors,
   updateProfileSchema,
   updateUserRoleSchema,
@@ -214,8 +217,8 @@ export async function markAllNotificationsReadAction(): Promise<ActionResult> {
 export async function updateUserRoleAction(
   input: unknown,
 ): Promise<ActionResult> {
-  // Authorisation is checked BEFORE the service-role client is constructed.
-  if (!(await isAdmin())) {
+  // Only Super Admins can modify roles
+  if (!(await isSuperAdmin())) {
     return { success: false, error: "error.unauthorized" };
   }
 
@@ -256,7 +259,7 @@ export async function updateUserRoleAction(
 export async function updateSystemSettingsAction(
   input: unknown,
 ): Promise<ActionResult> {
-  if (!(await isAdmin())) {
+  if (!(await isSuperAdmin())) {
     return { success: false, error: "error.unauthorized" };
   }
 
@@ -313,4 +316,80 @@ export async function updateSystemSettingsAction(
 
   revalidatePath("/admin/settings");
   return { success: true, data: undefined, message: "admin.settings.saved" };
+}
+
+export async function saveSmtpSettingsAction(
+  input: unknown,
+): Promise<ActionResult> {
+  if (!(await isSuperAdmin())) {
+    return { success: false, error: "error.unauthorized" };
+  }
+
+  const parsed = smtpSettingsSchema.safeParse(input);
+  if (!parsed.success) {
+    return {
+      success: false,
+      error: "validation.required",
+      fieldErrors: toFieldErrors(parsed.error),
+    };
+  }
+  const data = parsed.data;
+
+  try {
+    await saveSmtpSettings({
+      host: data.smtpHost,
+      port: data.smtpPort,
+      user: data.smtpUser,
+      pass: data.smtpPass,
+      fromName: data.smtpFromName,
+      secure: data.smtpSecure,
+      enabled: data.smtpEnabled,
+    });
+
+    const actor = await getCurrentProfile();
+    await recordAudit({
+      userId: actor?.id ?? null,
+      actorEmail: actor?.email ?? null,
+      action: "SETTINGS_UPDATED",
+      entityType: "system_settings",
+      metadata: { target: "smtp_configuration", user: data.smtpUser },
+    });
+
+    revalidatePath("/admin/email");
+    return { success: true, data: undefined, message: "admin.email.settingsSaved" };
+  } catch (err: unknown) {
+    console.error("[saveSmtpSettingsAction] error:", err);
+    return { success: false, error: "error.generic" };
+  }
+}
+
+export async function testSmtpConnectionAction(
+  input: unknown,
+): Promise<ActionResult<{ message: string }>> {
+  if (!(await isSuperAdmin())) {
+    return { success: false, error: "error.unauthorized" };
+  }
+
+  const parsed = testEmailSchema.safeParse(input);
+  if (!parsed.success) {
+    return {
+      success: false,
+      error: "validation.email",
+      fieldErrors: toFieldErrors(parsed.error),
+    };
+  }
+
+  const result = await testSmtpConnection(parsed.data.targetEmail);
+  if (result.ok) {
+    return {
+      success: true,
+      data: { message: result.message },
+      message: "admin.email.testSentSuccess",
+    };
+  }
+
+  return {
+    success: false,
+    error: result.message,
+  };
 }

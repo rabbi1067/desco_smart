@@ -125,6 +125,14 @@ const meterFields = {
   criticalThreshold: thresholdSchema.default(DEFAULT_CRITICAL_THRESHOLD),
   monitoringEnabled: z.boolean().default(true),
   emailAlertEnabled: z.boolean().default(true),
+  alertEmail: z
+    .string()
+    .trim()
+    .email(key("validation.email"))
+    .max(254)
+    .toLowerCase()
+    .optional()
+    .or(z.literal("")),
 };
 
 /**
@@ -193,11 +201,45 @@ export const appearanceSchema = z.object({
 });
 
 // -----------------------------------------------------------------------------
-// Admin
+// Admin & Roles
 // -----------------------------------------------------------------------------
 export const updateUserRoleSchema = z.object({
   userId: z.string().uuid(),
-  role: z.enum(["user", "super_admin"]),
+  role: z.enum(["user", "admin", "super_admin"]),
+});
+
+export const adminCreateUserSchema = z.object({
+  fullName: fullNameSchema,
+  email: emailSchema,
+  password: passwordSchema,
+  role: z.enum(["user", "admin", "super_admin"]).default("user"),
+});
+
+export const adminUpdateUserSchema = z.object({
+  userId: z.string().uuid(),
+  fullName: fullNameSchema,
+  phone: z.string().trim().max(32).optional().or(z.literal("")),
+  address: z.string().trim().max(200).optional().or(z.literal("")),
+  designation: z.string().trim().max(80).optional().or(z.literal("")),
+});
+
+export const adminToggleBlockSchema = z.object({
+  userId: z.string().uuid(),
+  isActive: z.boolean(),
+});
+
+export const smtpSettingsSchema = z.object({
+  smtpHost: z.string().trim().min(1, key("validation.required")),
+  smtpPort: z.coerce.number().min(1).max(65535),
+  smtpUser: z.string().trim().email(key("validation.email")),
+  smtpPass: z.string().trim().min(1, key("validation.required")),
+  smtpFromName: z.string().trim().min(1, key("validation.required")),
+  smtpSecure: z.boolean().default(false),
+  smtpEnabled: z.boolean().default(true),
+});
+
+export const testEmailSchema = z.object({
+  targetEmail: emailSchema,
 });
 
 export const systemSettingsSchema = z.object({
@@ -253,6 +295,12 @@ export type UpdateProfileInput = z.infer<typeof updateProfileSchema>;
 export type NotificationPreferencesInput = z.infer<
   typeof notificationPreferencesSchema
 >;
+export type UpdateUserRoleInput = z.infer<typeof updateUserRoleSchema>;
+export type AdminCreateUserInput = z.infer<typeof adminCreateUserSchema>;
+export type AdminUpdateUserInput = z.infer<typeof adminUpdateUserSchema>;
+export type AdminToggleBlockInput = z.infer<typeof adminToggleBlockSchema>;
+export type SmtpSettingsInput = z.infer<typeof smtpSettingsSchema>;
+export type TestEmailInput = z.infer<typeof testEmailSchema>;
 export type SystemSettingsInput = z.infer<typeof systemSettingsSchema>;
 export type ReportFilterInput = z.infer<typeof reportFilterSchema>;
 export type AnalyticsQueryInput = z.infer<typeof analyticsQuerySchema>;

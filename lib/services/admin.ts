@@ -1,7 +1,8 @@
 import "server-only";
 
 import { createAdminClient } from "@/lib/supabase/admin";
-import { isAdmin } from "@/lib/auth";
+import { isAdmin, isSuperAdmin } from "@/lib/auth";
+import { getSmtpSettings } from "@/lib/services/smtp";
 import type {
   AdminSystemStats,
   AlertDeliveryStatus,
@@ -381,6 +382,9 @@ export async function getRecentAlerts(limit = 50): Promise<AdminLedgerAlert[]> {
  * never read into a return value, never logged, and has no code path to the
  * browser — only the boolean and the non-secret fields cross that boundary.
  */
+/**
+ * Reports the SMTP relay configuration.
+ */
 export async function getEmailGatewayStatus(): Promise<{
   configured: boolean;
   host: string | null;
@@ -388,6 +392,8 @@ export async function getEmailGatewayStatus(): Promise<{
   sender: string | null;
   senderName: string | null;
   username: string | null;
+  enabled: boolean;
+  secure: boolean;
 }> {
   if (!(await assertAdmin())) {
     return {
@@ -397,20 +403,26 @@ export async function getEmailGatewayStatus(): Promise<{
       sender: null,
       senderName: null,
       username: null,
+      enabled: false,
+      secure: false,
     };
   }
 
-  const user = process.env.EMAIL_USER ?? null;
-  const hasPassword = Boolean(process.env.EMAIL_PASS);
+  const smtp = await getSmtpSettings();
 
   return {
-    configured: Boolean(user) && hasPassword,
-    host: process.env.SMTP_HOST ?? "smtp.gmail.com",
-    port: process.env.SMTP_PORT ?? "587",
-    sender: user,
-    senderName: process.env.EMAIL_FROM_NAME ?? "DESCO Smart",
-    // The username IS the sender address here; shown so an admin can confirm
-    // which mailbox is wired up. Never the password.
-    username: user,
+    configured: smtp.configured,
+    host: smtp.host,
+    port: String(smtp.port),
+    sender: smtp.user || null,
+    senderName: smtp.fromName,
+    username: smtp.user || null,
+    enabled: smtp.enabled,
+    secure: smtp.secure,
   };
+}
+
+export async function getFullSmtpSettingsForSuperAdmin() {
+  if (!(await isSuperAdmin())) return null;
+  return getSmtpSettings();
 }
