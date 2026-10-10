@@ -110,8 +110,8 @@ export const APP_TIMEZONE = "Asia/Dhaka";
 export const DESCO_API_BASE =
   "https://prepaid.desco.org.bd/api/tkdes/customer";
 
-/** Matches the 30s timeout used by the original `desco_check.py` request. */
-export const DESCO_REQUEST_TIMEOUT_MS = 30_000;
+/** Fast 6s timeout so slow or unresponsive upstream DESCO servers do not block page rendering. */
+export const DESCO_REQUEST_TIMEOUT_MS = 6_000;
 
 /**
  * Server-side cache windows for DESCO *historical* reads (Next.js fetch

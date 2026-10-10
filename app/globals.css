@@ -9,38 +9,39 @@
    * Light is a fully designed counterpart, not an afterthought.
    */
   :root {
-    --background: 0 0% 100%;
-    --foreground: 222 47% 11%;
+    /* Warm cream / stone palette from reference (soft warm alabaster, not harsh stark white) */
+    --background: 38 25% 97%;
+    --foreground: 24 20% 12%;
 
     --card: 0 0% 100%;
-    --card-foreground: 222 47% 11%;
+    --card-foreground: 24 20% 12%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 222 47% 11%;
+    --popover-foreground: 24 20% 12%;
 
-    --primary: 160 84% 32%;
+    --primary: 20 78% 42%;
     --primary-foreground: 0 0% 100%;
 
-    --secondary: 210 40% 96%;
-    --secondary-foreground: 222 47% 11%;
+    --secondary: 38 22% 93%;
+    --secondary-foreground: 24 20% 12%;
 
-    --muted: 210 40% 96%;
-    --muted-foreground: 215 16% 42%;
+    --muted: 38 22% 93%;
+    --muted-foreground: 25 8% 46%;
 
-    --accent: 160 60% 95%;
-    --accent-foreground: 160 84% 22%;
+    --accent: 38 28% 92%;
+    --accent-foreground: 20 78% 36%;
 
     --destructive: 0 72% 45%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 214 32% 89%;
-    --input: 214 32% 89%;
-    --ring: 160 84% 32%;
+    --border: 38 18% 88%;
+    --input: 38 18% 88%;
+    --ring: 20 78% 42%;
 
-    --sidebar: 210 40% 98%;
-    --sidebar-foreground: 222 47% 11%;
-    --sidebar-border: 214 32% 89%;
-    --sidebar-accent: 160 60% 94%;
+    --sidebar: 38 25% 96%;
+    --sidebar-foreground: 24 20% 12%;
+    --sidebar-border: 38 18% 88%;
+    --sidebar-accent: 38 28% 92%;
 
     --status-healthy: 158 74% 32%;
     --status-healthy-fg: 158 74% 24%;
@@ -51,10 +52,10 @@
     --status-info: 217 85% 50%;
     --status-info-fg: 217 85% 42%;
 
-    --chart-1: 160 84% 39%;
-    --chart-2: 217 91% 60%;
+    --chart-1: 20 78% 48%;
+    --chart-2: 160 84% 39%;
     --chart-3: 35 92% 50%;
-    --chart-4: 271 76% 60%;
+    --chart-4: 217 91% 60%;
     --chart-5: 349 78% 55%;
 
     --radius: 0.75rem;

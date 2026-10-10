@@ -1,5 +1,6 @@
 import "server-only";
 
+import { cache } from "react";
 import { getAuthedUserId } from "@/lib/auth";
 import { estimateRemainingDays, PERIOD_DAYS } from "@/lib/constants";
 import { toISODate } from "@/lib/utils";
@@ -104,12 +105,13 @@ function projectRunoutDate(
  * live; a DESCO outage degrades gracefully to balance-history-only rather than
  * failing the whole page.
  */
-export async function getMeterAnalytics(
-  meterId: string,
-  period: AnalyticsPeriod = "7d",
-  dateFrom?: string,
-  dateTo?: string,
-): Promise<AnalyticsData> {
+export const getMeterAnalytics = cache(
+  async (
+    meterId: string,
+    period: AnalyticsPeriod = "7d",
+    dateFrom?: string,
+    dateTo?: string,
+  ): Promise<AnalyticsData> => {
   const meter = await getMeterById(meterId);
   if (!meter) return EMPTY_ANALYTICS;
 
@@ -176,17 +178,18 @@ export async function getMeterAnalytics(
     currentBalance,
     isEmpty,
   };
-}
+});
 
 /**
  * Fleet-wide analytics: consumption summed per day across every active meter,
  * balance history summed per day.
  */
-export async function getFleetAnalytics(
-  period: AnalyticsPeriod = "7d",
-  dateFrom?: string,
-  dateTo?: string,
-): Promise<AnalyticsData> {
+export const getFleetAnalytics = cache(
+  async (
+    period: AnalyticsPeriod = "7d",
+    dateFrom?: string,
+    dateTo?: string,
+  ): Promise<AnalyticsData> => {
   const userId = await getAuthedUserId();
   if (!userId) return EMPTY_ANALYTICS;
 
@@ -306,7 +309,7 @@ export async function getFleetAnalytics(
       consumption.length === 0 &&
       recharges.length === 0,
   };
-}
+});
 
 /**
  * Splits a consumption series into this-week / last-week pairs for the weekly

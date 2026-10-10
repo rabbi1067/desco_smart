@@ -168,11 +168,10 @@ export async function getBalanceHistory(
 }
 
 /** Readings across every meter the user owns — powers "Recent Activity". */
-export async function getRecentReadings(limit = 10): Promise<
-  (BalanceReading & { meter_name: string })[]
-> {
-  const userId = await getAuthedUserId();
-  if (!userId) return [];
+export const getRecentReadings = cache(
+  async (limit = 10): Promise<(BalanceReading & { meter_name: string })[]> => {
+    const userId = await getAuthedUserId();
+    if (!userId) return [];
 
   const supabase = await createClient();
   const { data, error } = await supabase
@@ -192,7 +191,7 @@ export async function getRecentReadings(limit = 10): Promise<
     ...row,
     meter_name: row.meters?.name ?? "—",
   }));
-}
+});
 
 export async function getAlerts(
   meterId?: string,

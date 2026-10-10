@@ -65,7 +65,7 @@ interface AdminOverviewProps {
 
 type PeriodFilter = "day" | "week" | "month" | "year";
 
-export function AdminOverviewView({ stats, meters, volume: _volume }: AdminOverviewProps) {
+export function AdminOverviewView({ stats, meters, volume }: AdminOverviewProps) {
   const [period, setPeriod] = useState<PeriodFilter>("month");
   const [searchQuery, setSearchQuery] = useState("");
   const [isRefreshing, setIsRefreshing] = useState(false);
@@ -75,7 +75,7 @@ export function AdminOverviewView({ stats, meters, volume: _volume }: AdminOverv
     window.location.reload();
   }
 
-  // Calculate aggregated financial liquidity & health breakdown
+  // Calculate aggregated financial liquidity & health breakdown strictly from database rows
   const fleetAnalytics = useMemo(() => {
     let totalBalance = 0;
     let healthyBalance = 0;
@@ -114,104 +114,52 @@ export function AdminOverviewView({ stats, meters, volume: _volume }: AdminOverv
       healthyCount,
       lowCount,
       criticalCount,
-      healthyPct: Math.round((healthyCount / totalCount) * 100),
-      lowPct: Math.round((lowCount / totalCount) * 100),
-      criticalPct: Math.round((criticalCount / totalCount) * 100),
+      healthyPct: meters.length > 0 ? Math.round((healthyCount / totalCount) * 100) : 0,
+      lowPct: meters.length > 0 ? Math.round((lowCount / totalCount) * 100) : 0,
+      criticalPct: meters.length > 0 ? Math.round((criticalCount / totalCount) * 100) : 0,
     };
   }, [meters]);
 
-  // Construct realistic curve data points matching OrbitAdmin spline graph
+  // Construct real curve data points from database volume telemetry
   const performanceTrendData = useMemo(() => {
-    const dates = [
-      "10-01",
-      "10-02",
-      "10-03",
-      "10-04",
-      "10-05",
-      "10-06",
-      "10-07",
-      "10-08",
-      "10-09",
-      "10-10",
-    ];
-
-    const baseBalance = fleetAnalytics.totalBalance > 0 ? fleetAnalytics.totalBalance : 515579;
-
-    if (period === "day") {
-      return [
-        { time: "00:00", value: Math.round(baseBalance * 0.98), burn: 450 },
-        { time: "04:00", value: Math.round(baseBalance * 0.96), burn: 280 },
-        { time: "08:00", value: Math.round(baseBalance * 0.94), burn: 920 },
-        { time: "12:00", value: Math.round(baseBalance * 0.91), burn: 1400 },
-        { time: "16:00", value: Math.round(baseBalance * 0.88), burn: 1850 },
-        { time: "20:00", value: Math.round(baseBalance * 0.85), burn: 2200 },
-        { time: "23:59", value: Math.round(baseBalance * 0.83), burn: 890 },
-      ];
+    if (!volume || !volume.checks || volume.checks.length === 0) {
+      return [];
     }
 
-    if (period === "week") {
-      const days = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
-      return days.map((day, idx) => {
-        // Curve peaks and valleys similar to reference screenshot
-        const factor = idx === 4 || idx === 5 ? 1.05 : 0.85 + (idx * 0.04);
-        return {
-          time: day,
-          value: Math.round(baseBalance * factor),
-          burn: Math.round(3500 + Math.sin(idx) * 1200),
-        };
-      });
-    }
-
-    if (period === "year") {
-      const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct"];
-      return months.map((m, idx) => ({
-        time: m,
-        value: Math.round(baseBalance * (0.7 + idx * 0.035)),
-        burn: Math.round(45000 + Math.sin(idx) * 8000),
-      }));
-    }
-
-    // Default: Month (matching reference screenshot with two smooth waves)
-    return dates.map((date, idx) => {
-      // Create high-dynamic wave peaks like in screenshot (10-06 and 10-08 peaks)
-      let wave = 0;
-      if (idx === 5) wave = baseBalance * 0.85; // Peak 1
-      else if (idx === 7) wave = baseBalance * 0.92; // Peak 2
-      else if (idx > 4) wave = baseBalance * 0.25;
-      else wave = 0;
-
-      const displayVal = wave > 0 ? wave : (idx === 0 ? 0 : Math.round(baseBalance * 0.05));
+    return volume.checks.map((item) => {
+      const alertItem = volume.alerts?.find((a) => a.date === item.date);
+      const alertCount = (alertItem?.low ?? 0) + (alertItem?.critical ?? 0);
       return {
-        time: date,
-        value: Math.round(displayVal),
-        burn: Math.round(1500 + Math.random() * 800),
+        time: item.date.slice(5),
+        value: item.success,
+        burn: item.failed + alertCount,
       };
     });
-  }, [fleetAnalytics.totalBalance, period]);
+  }, [volume]);
 
-  // Breakdown bar data
+  // Breakdown bar data directly from database
   const statusBreakdownData = useMemo(() => {
     return [
       {
         name: "HEALTHY",
-        amount: fleetAnalytics.healthyBalance || (fleetAnalytics.totalBalance > 0 ? fleetAnalytics.totalBalance : 457059),
-        count: fleetAnalytics.healthyCount || (meters.length === 0 ? 1 : 0),
-        fill: "#10b981", // bright emerald green
+        amount: fleetAnalytics.healthyBalance,
+        count: fleetAnalytics.healthyCount,
+        fill: "#10b981",
       },
       {
         name: "LOW ALERT",
-        amount: fleetAnalytics.lowBalance || (fleetAnalytics.totalBalance > 0 ? 0 : 38960),
+        amount: fleetAnalytics.lowBalance,
         count: fleetAnalytics.lowCount,
-        fill: "#f59e0b", // amber
+        fill: "#f59e0b",
       },
       {
         name: "CRITICAL",
-        amount: fleetAnalytics.criticalBalance || (fleetAnalytics.totalBalance > 0 ? 0 : 21560),
+        amount: fleetAnalytics.criticalBalance,
         count: fleetAnalytics.criticalCount,
-        fill: "#ef4444", // red
+        fill: "#ef4444",
       },
     ];
-  }, [fleetAnalytics, meters.length]);
+  }, [fleetAnalytics]);
 
   // Filtered meters for the live directory
   const filteredMeters = useMemo(() => {
@@ -323,13 +271,13 @@ export function AdminOverviewView({ stats, meters, volume: _volume }: AdminOverv
               <div>
                 <p className="text-xs font-medium text-gray-400">Total Fleet Balance</p>
                 <h3 className="mt-2 text-2xl font-bold tracking-tight text-white tabular">
-                  ৳{(fleetAnalytics.totalBalance > 0 ? fleetAnalytics.totalBalance : 515579.05).toLocaleString("en-US", {
+                  ৳{fleetAnalytics.totalBalance.toLocaleString("en-US", {
                     minimumFractionDigits: 2,
                     maximumFractionDigits: 2,
                   })}
                 </h3>
                 <p className="mt-1 text-[11px] text-gray-400">
-                  Aggregated prepaid balance across all connected consumer meters.
+                  Real-time aggregated prepaid balance from connected consumer meters.
                 </p>
               </div>
               <div className="rounded-xl border border-emerald-500/20 bg-emerald-500/10 p-2 text-emerald-400">
@@ -346,10 +294,10 @@ export function AdminOverviewView({ stats, meters, volume: _volume }: AdminOverv
               <div>
                 <p className="text-xs font-medium text-gray-400">Monitored Meters</p>
                 <h3 className="mt-2 text-2xl font-bold tracking-tight text-white tabular">
-                  {stats.totalMeters > 0 ? stats.totalMeters : meters.length || 1}
+                  {stats.totalMeters}
                 </h3>
                 <p className="mt-1 text-[11px] text-gray-400">
-                  {stats.activeMeters > 0 ? stats.activeMeters : meters.length || 1} actively polled 24/7 by background workers.
+                  {stats.activeMeters} actively polled 24/7 by background workers.
                 </p>
               </div>
               <div className="rounded-xl border border-emerald-500/20 bg-emerald-500/10 p-2 text-emerald-400">
@@ -366,10 +314,10 @@ export function AdminOverviewView({ stats, meters, volume: _volume }: AdminOverv
               <div>
                 <p className="text-xs font-medium text-gray-400">Active Consumers</p>
                 <h3 className="mt-2 text-2xl font-bold tracking-tight text-white tabular">
-                  {stats.totalUsers > 0 ? stats.totalUsers : 1}
+                  {stats.totalUsers}
                 </h3>
                 <p className="mt-1 text-[11px] text-gray-400">
-                  Registered consumer accounts participating in the system.
+                  Registered consumer accounts participating in system.
                 </p>
               </div>
               <div className="rounded-xl border border-emerald-500/20 bg-emerald-500/10 p-2 text-emerald-400">
@@ -422,56 +370,68 @@ export function AdminOverviewView({ stats, meters, volume: _volume }: AdminOverv
           </CardHeader>
 
           <CardContent className="pt-2">
-            <div className="h-72 w-full">
-              <ResponsiveContainer width="100%" height="100%">
-                <AreaChart
-                  data={performanceTrendData}
-                  margin={{ top: 15, right: 15, left: -10, bottom: 0 }}
-                >
-                  <defs>
-                    <linearGradient id="orbitGreenGradient" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#10b981" stopOpacity={0.4} />
-                      <stop offset="95%" stopColor="#10b981" stopOpacity={0.0} />
-                    </linearGradient>
-                  </defs>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#1f2937" vertical={false} />
-                  <XAxis
-                    dataKey="time"
-                    stroke="#9ca3af"
-                    fontSize={11}
-                    tickLine={false}
-                    axisLine={false}
-                    dy={5}
-                  />
-                  <YAxis
-                    stroke="#9ca3af"
-                    fontSize={11}
-                    tickLine={false}
-                    axisLine={false}
-                    tickFormatter={(v) => (v >= 1000 ? `${Math.round(v / 1000)}k` : `${v}`)}
-                  />
-                  <Tooltip
-                    contentStyle={{
-                      backgroundColor: "#111827",
-                      borderColor: "#374151",
-                      borderRadius: "0.75rem",
-                      color: "#f3f4f6",
-                      fontSize: "12px",
-                      boxShadow: "0 10px 15px -3px rgba(0, 0, 0, 0.5)",
-                    }}
-                    formatter={(val: number) => [`৳ ${val.toLocaleString()}`, "Balance Pool"]}
-                    labelFormatter={(label) => `Period: ${label}`}
-                  />
-                  <Area
-                    type="monotone"
-                    dataKey="value"
-                    stroke="#10b981"
-                    strokeWidth={2.5}
-                    fillOpacity={1}
-                    fill="url(#orbitGreenGradient)"
-                  />
-                </AreaChart>
-              </ResponsiveContainer>
+            <div className="h-72 w-full flex items-center justify-center">
+              {performanceTrendData.length === 0 ? (
+                <div className="flex flex-col items-center justify-center text-center p-6">
+                  <div className="size-12 rounded-2xl bg-gray-800/80 border border-gray-700/60 flex items-center justify-center mb-3 text-emerald-400">
+                    <Activity className="size-6 text-emerald-400/80" />
+                  </div>
+                  <h4 className="text-sm font-semibold text-gray-200">No Automated Telemetry Readings Yet</h4>
+                  <p className="text-xs text-gray-400 mt-1 max-w-sm">
+                    Readings will automatically populate as connected consumer meters are checked by 24/7 background workers.
+                  </p>
+                </div>
+              ) : (
+                <ResponsiveContainer width="100%" height="100%">
+                  <AreaChart
+                    data={performanceTrendData}
+                    margin={{ top: 15, right: 15, left: -10, bottom: 0 }}
+                  >
+                    <defs>
+                      <linearGradient id="orbitGreenGradient" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor="#10b981" stopOpacity={0.4} />
+                        <stop offset="95%" stopColor="#10b981" stopOpacity={0.0} />
+                      </linearGradient>
+                    </defs>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#1f2937" vertical={false} />
+                    <XAxis
+                      dataKey="time"
+                      stroke="#9ca3af"
+                      fontSize={11}
+                      tickLine={false}
+                      axisLine={false}
+                      dy={5}
+                    />
+                    <YAxis
+                      stroke="#9ca3af"
+                      fontSize={11}
+                      tickLine={false}
+                      axisLine={false}
+                      tickFormatter={(v) => (v >= 1000 ? `${Math.round(v / 1000)}k` : `${v}`)}
+                    />
+                    <Tooltip
+                      contentStyle={{
+                        backgroundColor: "#111827",
+                        borderColor: "#374151",
+                        borderRadius: "0.75rem",
+                        color: "#f3f4f6",
+                        fontSize: "12px",
+                        boxShadow: "0 10px 15px -3px rgba(0, 0, 0, 0.5)",
+                      }}
+                      formatter={(val: number) => [`${val.toLocaleString()}`, "Successful Checks"]}
+                      labelFormatter={(label) => `Date: ${label}`}
+                    />
+                    <Area
+                      type="monotone"
+                      dataKey="value"
+                      stroke="#10b981"
+                      strokeWidth={2.5}
+                      fillOpacity={1}
+                      fill="url(#orbitGreenGradient)"
+                    />
+                  </AreaChart>
+                </ResponsiveContainer>
+              )}
             </div>
 
             <p className="mt-3 text-[11px] text-gray-500">
@@ -533,15 +493,15 @@ export function AdminOverviewView({ stats, meters, volume: _volume }: AdminOverv
               </ResponsiveContainer>
             </div>
 
-            {/* Itemized Breakdown List matching reference screenshot */}
+            {/* Itemized Breakdown List directly from real database metrics */}
             <div className="space-y-2 border-t border-gray-800 pt-3 text-xs">
               <div className="flex items-center justify-between text-gray-300">
                 <span className="flex items-center gap-1.5 font-medium">
                   <span className="size-2 rounded-full bg-emerald-400" />
-                  <span>HEALTHY ({fleetAnalytics.healthyCount || (meters.length === 0 ? 1 : 0)} settled)</span>
+                  <span>HEALTHY ({fleetAnalytics.healthyCount} settled)</span>
                 </span>
                 <span className="font-bold text-white tabular">
-                  ৳{(fleetAnalytics.healthyBalance || (fleetAnalytics.totalBalance > 0 ? fleetAnalytics.totalBalance : 457059.05)).toLocaleString()}
+                  ৳{fleetAnalytics.healthyBalance.toLocaleString("en-US", { minimumFractionDigits: 2 })}
                 </span>
               </div>
 
@@ -551,7 +511,7 @@ export function AdminOverviewView({ stats, meters, volume: _volume }: AdminOverv
                   <span>LOW ALERT ({fleetAnalytics.lowCount} flagged)</span>
                 </span>
                 <span className="font-semibold text-gray-300 tabular">
-                  ৳{(fleetAnalytics.lowBalance || (fleetAnalytics.totalBalance > 0 ? 0 : 38960)).toLocaleString()}
+                  ৳{fleetAnalytics.lowBalance.toLocaleString("en-US", { minimumFractionDigits: 2 })}
                 </span>
               </div>
 
@@ -561,7 +521,7 @@ export function AdminOverviewView({ stats, meters, volume: _volume }: AdminOverv
                   <span>CRITICAL ({fleetAnalytics.criticalCount} alert)</span>
                 </span>
                 <span className="font-semibold text-gray-300 tabular">
-                  ৳{(fleetAnalytics.criticalBalance || (fleetAnalytics.totalBalance > 0 ? 0 : 21560)).toLocaleString()}
+                  ৳{fleetAnalytics.criticalBalance.toLocaleString("en-US", { minimumFractionDigits: 2 })}
                 </span>
               </div>
             </div>
