@@ -131,6 +131,12 @@ export async function registerAction(
     });
   }
 
+  // Ensure newly registered account is NOT automatically logged in:
+  // User must visit the login page and authenticate with email and password.
+  if (data.session) {
+    await supabase.auth.signOut();
+  }
+
   revalidatePath("/", "layout");
   return {
     success: true,

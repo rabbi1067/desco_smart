@@ -23,6 +23,7 @@ INSERT INTO public.system_settings (key, value, description) VALUES
 ON CONFLICT (key) DO NOTHING;
 
 -- 4. Update is_admin() and is_super_admin() security definer helpers
+-- Use role::text to avoid PostgreSQL error 55P04 (unsafe use of new enum value in same transaction)
 CREATE OR REPLACE FUNCTION public.is_super_admin()
 RETURNS boolean
 LANGUAGE sql
@@ -34,7 +35,7 @@ AS $$
     SELECT 1
     FROM public.profiles
     WHERE id = auth.uid()
-      AND role = 'super_admin'
+      AND role::text = 'super_admin'
       AND is_active = true
   );
 $$;
@@ -50,7 +51,7 @@ AS $$
     SELECT 1
     FROM public.profiles
     WHERE id = auth.uid()
-      AND role IN ('admin', 'super_admin')
+      AND role::text IN ('admin', 'super_admin')
       AND is_active = true
   );
 $$;

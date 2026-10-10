@@ -45,7 +45,8 @@ export function RegisterForm() {
         toast.success(t("auth.registerSuccess"));
       } else {
         toast.success(t("auth.registerSuccessNoConfirm"));
-        window.location.href = "/dashboard";
+        const encodedEmail = encodeURIComponent(values.email);
+        window.location.href = `/login?registered=true&email=${encodedEmail}`;
       }
       return;
     }

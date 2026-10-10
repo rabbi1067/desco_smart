@@ -6,6 +6,7 @@ import Link from "next/link";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
+import { CheckCircle2 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { AuthCard } from "@/components/auth/auth-card";
@@ -29,6 +30,9 @@ export function LoginForm() {
   const searchParams = useSearchParams();
   const [pending, setPending] = useState(false);
 
+  const registered = searchParams.get("registered") === "true";
+  const initialEmail = searchParams.get("email") || "";
+
   const {
     register,
     handleSubmit,
@@ -36,7 +40,7 @@ export function LoginForm() {
     formState: { errors },
   } = useForm<LoginInput>({
     resolver: zodResolver(loginSchema),
-    defaultValues: { email: "", password: "" },
+    defaultValues: { email: initialEmail, password: "" },
   });
 
   // Zod messages are translation keys; resolve them for display.
@@ -85,6 +89,20 @@ export function LoginForm() {
       }
     >
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-4" noValidate>
+        {registered && (
+          <div className="rounded-xl border border-emerald-500/30 bg-emerald-500/10 p-3.5 text-xs text-emerald-300 flex items-start gap-2.5">
+            <CheckCircle2 className="size-4 shrink-0 text-emerald-400 mt-0.5" />
+            <div>
+              <p className="font-semibold text-emerald-300">
+                {t("auth.registerSuccessNoConfirm")}
+              </p>
+              <p className="text-gray-300 mt-0.5">
+                অনুগ্রহ করে পাসওয়ার্ড দিয়ে সাইন ইন সম্পন্ন করুন। (Please enter your password to sign in)
+              </p>
+            </div>
+          </div>
+        )}
+
         <FormField id="email" label={t("auth.email")} error={tk(errors.email?.message)}>
           <Input
             id="email"
