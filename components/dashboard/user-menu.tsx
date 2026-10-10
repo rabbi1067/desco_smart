@@ -2,7 +2,7 @@
 
 import { useTransition } from "react";
 import Link from "next/link";
-import { LogOut, User, Settings, ShieldCheck } from "lucide-react";
+import { LogOut, User, Settings } from "lucide-react";
 import { toast } from "sonner";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -27,12 +27,12 @@ export function UserMenu({
   fullName,
   email,
   avatarUrl,
-  isAdmin,
+  isAdmin: _isAdmin,
 }: {
   fullName: string | null;
   email: string;
   avatarUrl: string | null;
-  isAdmin: boolean;
+  isAdmin?: boolean;
 }) {
   const { t } = useTranslation();
   const [pending, startTransition] = useTransition();

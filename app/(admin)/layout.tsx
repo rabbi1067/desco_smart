@@ -38,10 +38,25 @@ export default async function AdminLayout({
         <div className="flex h-16 items-center gap-3 px-4 sm:px-6">
           <AdminMobileNav isSuperAdmin={isSuper} />
           <Logo />
-          <Badge variant="info" className="hidden sm:inline-flex">
-            {isSuper ? t("admin.superAdmin") : t("admin.badge")}
+          <Badge variant="info" className="hidden sm:inline-flex border-emerald-500/30 bg-emerald-500/10 text-emerald-400">
+            {isSuper ? "Super Admin" : "Admin"}
           </Badge>
-          <div className="ml-auto flex items-center gap-1.5">
+
+          {/* Central Search Bar like OrbitAdmin */}
+          <div className="hidden md:flex items-center flex-1 max-w-sm mx-6">
+            <div className="relative w-full">
+              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-xs">
+                🔍
+              </span>
+              <input
+                type="text"
+                placeholder="Search anything (meters, accounts, users)..."
+                className="w-full h-8 pl-8 pr-3 text-xs bg-gray-900 border border-gray-800 rounded-xl text-gray-200 placeholder:text-gray-500 focus:outline-none focus:border-emerald-500/60"
+              />
+            </div>
+          </div>
+
+          <div className="ml-auto flex items-center gap-2">
             <NotificationBell unreadCount={unreadCount} />
             <LanguageToggle />
             <ThemeToggle />
