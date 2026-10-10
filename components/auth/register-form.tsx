@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -19,7 +18,6 @@ import type { TranslationKey } from "@/lib/i18n/dictionaries";
 
 export function RegisterForm() {
   const { t } = useTranslation();
-  const router = useRouter();
   const [pending, setPending] = useState(false);
   const [confirmationSent, setConfirmationSent] = useState(false);
 
@@ -47,8 +45,7 @@ export function RegisterForm() {
         toast.success(t("auth.registerSuccess"));
       } else {
         toast.success(t("auth.registerSuccessNoConfirm"));
-        router.replace("/dashboard");
-        router.refresh();
+        window.location.href = "/dashboard";
       }
       return;
     }

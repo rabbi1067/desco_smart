@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -20,7 +19,6 @@ import type { TranslationKey } from "@/lib/i18n/dictionaries";
 
 export function ResetPasswordForm() {
   const { t } = useTranslation();
-  const router = useRouter();
   const [pending, setPending] = useState(false);
 
   const {
@@ -43,8 +41,7 @@ export function ResetPasswordForm() {
     if (result.success) {
       toast.success(t("auth.passwordUpdated"));
       // Session may be a recovery session only; send them through a clean login.
-      router.replace("/login");
-      router.refresh();
+      window.location.href = "/login";
       return;
     }
 

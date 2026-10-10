@@ -40,8 +40,47 @@ export const getCurrentProfile = cache(async (): Promise<Profile | null> => {
     .eq("id", user.id)
     .maybeSingle();
 
-  if (error || !data) return null;
-  return data as Profile;
+  if (data) return data as Profile;
+
+  // Auto-backfill: if the row doesn't exist yet, attempt to create it.
+  // Allowed by RLS policy "profiles_insert_own" (0002_rls_policies.sql).
+  if (!data) {
+    try {
+      const fullName =
+        (user.user_metadata?.full_name as string | undefined)?.trim() ||
+        user.email?.split("@")[0] ||
+        "User";
+
+      const { data: inserted, error: insertError } = await supabase
+        .from("profiles")
+        .insert({
+          id: user.id,
+          email: user.email ?? "",
+          full_name: fullName,
+          role: "user",
+        })
+        .select("*")
+        .maybeSingle();
+
+      if (!insertError && inserted) {
+        // Also ensure default notification preferences exist
+        await supabase
+          .from("notification_preferences")
+          .insert({ user_id: user.id })
+          .maybeSingle();
+
+        return inserted as Profile;
+      }
+    } catch (backfillErr) {
+      console.error("[auth] Profile auto-backfill threw:", backfillErr);
+    }
+  }
+
+  if (error) {
+    console.error("[auth] getCurrentProfile error:", error.message);
+  }
+
+  return null;
 });
 
 export async function isAuthenticated(): Promise<boolean> {
@@ -70,8 +109,15 @@ export async function requireAuth() {
 
 /** Guards a page/action that requires a profile row to exist. */
 export async function requireProfile(): Promise<Profile> {
+  const user = await getCurrentUser();
+  if (!user) redirect("/login");
+
   const profile = await getCurrentProfile();
-  if (!profile) redirect("/login");
+  if (!profile) {
+    // If authenticated user has no profile (e.g. database schema not initialized),
+    // redirecting to /login causes an infinite redirect loop with middleware.
+    redirect("/unauthorized?error=profile_not_found");
+  }
   return profile;
 }
 

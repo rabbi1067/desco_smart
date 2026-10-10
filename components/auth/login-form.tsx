@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -26,7 +26,6 @@ function safeRedirect(target: string | null): string {
 
 export function LoginForm() {
   const { t } = useTranslation();
-  const router = useRouter();
   const searchParams = useSearchParams();
   const [pending, setPending] = useState(false);
 
@@ -51,8 +50,7 @@ export function LoginForm() {
     if (result.success) {
       toast.success(t("auth.loginSuccess"));
       const dest = safeRedirect(searchParams.get("redirectTo"));
-      router.replace(dest);
-      router.refresh();
+      window.location.href = dest;
       return;
     }
 
