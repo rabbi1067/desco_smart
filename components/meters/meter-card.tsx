@@ -66,7 +66,7 @@ export function MeterCard({
   }
 
   return (
-    <Card className="flex flex-col">
+    <Card className="flex flex-col border-border/80 hover:border-emerald-500/50 hover:shadow-lg hover:shadow-emerald-500/5 hover:-translate-y-0.5 transition-all duration-200">
       <CardContent className="flex-1 space-y-4 p-5">
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0 space-y-1">

@@ -15,6 +15,7 @@ import {
   Search,
   ShieldAlert,
   Users,
+  X,
 } from "lucide-react";
 import {
   AreaChart,
@@ -316,7 +317,7 @@ export function AdminOverviewView({ stats, meters, volume: _volume }: AdminOverv
       {/* 4 Modern Executive KPI Metric Cards */}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
         {/* Card 1: Total Fleet Balance */}
-        <Card className="border-gray-800 bg-gray-900/90 shadow-lg">
+        <Card className="border-gray-800/80 bg-gray-900/90 shadow-lg hover:border-emerald-500/50 hover:shadow-xl hover:shadow-emerald-500/5 hover:-translate-y-0.5 transition-all duration-200 cursor-pointer">
           <CardContent className="p-5">
             <div className="flex items-start justify-between">
               <div>
@@ -339,7 +340,7 @@ export function AdminOverviewView({ stats, meters, volume: _volume }: AdminOverv
         </Card>
 
         {/* Card 2: Monitored Meters */}
-        <Card className="border-gray-800 bg-gray-900/90 shadow-lg">
+        <Card className="border-gray-800/80 bg-gray-900/90 shadow-lg hover:border-emerald-500/50 hover:shadow-xl hover:shadow-emerald-500/5 hover:-translate-y-0.5 transition-all duration-200 cursor-pointer">
           <CardContent className="p-5">
             <div className="flex items-start justify-between">
               <div>
@@ -359,7 +360,7 @@ export function AdminOverviewView({ stats, meters, volume: _volume }: AdminOverv
         </Card>
 
         {/* Card 3: Active Consumers */}
-        <Card className="border-gray-800 bg-gray-900/90 shadow-lg">
+        <Card className="border-gray-800/80 bg-gray-900/90 shadow-lg hover:border-emerald-500/50 hover:shadow-xl hover:shadow-emerald-500/5 hover:-translate-y-0.5 transition-all duration-200 cursor-pointer">
           <CardContent className="p-5">
             <div className="flex items-start justify-between">
               <div>
@@ -379,7 +380,7 @@ export function AdminOverviewView({ stats, meters, volume: _volume }: AdminOverv
         </Card>
 
         {/* Card 4: 24h Alerts Dispatched */}
-        <Card className="border-gray-800 bg-gray-900/90 shadow-lg">
+        <Card className="border-gray-800/80 bg-gray-900/90 shadow-lg hover:border-emerald-500/50 hover:shadow-xl hover:shadow-emerald-500/5 hover:-translate-y-0.5 transition-all duration-200 cursor-pointer">
           <CardContent className="p-5">
             <div className="flex items-start justify-between">
               <div>
@@ -590,8 +591,17 @@ export function AdminOverviewView({ stats, meters, volume: _volume }: AdminOverv
                   placeholder="Filter meters or owners..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="h-9 rounded-xl border-gray-700 bg-gray-800 pl-9 text-xs text-white placeholder:text-gray-500 focus:border-emerald-500"
+                  className="h-9 rounded-xl border-gray-700 bg-gray-800 pl-9 pr-8 text-xs text-white placeholder:text-gray-500 focus:border-emerald-500"
                 />
+                {searchQuery.length > 0 && (
+                  <button
+                    type="button"
+                    onClick={() => setSearchQuery("")}
+                    className="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white p-0.5"
+                  >
+                    <X className="size-3.5" />
+                  </button>
+                )}
               </div>
 
               <Button asChild variant="outline" size="sm" className="rounded-xl border-gray-700 text-xs">

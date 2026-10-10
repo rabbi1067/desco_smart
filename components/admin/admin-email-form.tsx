@@ -71,7 +71,7 @@ export function AdminEmailForm({
       smtpHost: settings.host || "smtp.gmail.com",
       smtpPort: settings.port || 587,
       smtpUser: settings.user || "",
-      smtpPass: settings.pass || "",
+      smtpPass: "",
       smtpFromName: settings.fromName || "DESCO Smart Alert",
       smtpSecure: settings.secure ?? false,
       smtpEnabled: settings.enabled ?? true,
@@ -228,7 +228,11 @@ export function AdminEmailForm({
                   <Input
                     id="smtpPass"
                     type={showPassword ? "text" : "password"}
-                    placeholder="16-character app password (e.g. abcd efgh ijkl mnop)"
+                    placeholder={
+                      settings.hasPassword || settings.configured
+                        ? "•••••••••••••••• (Saved in system — leave blank to keep)"
+                        : "Enter 16-character Google App Password"
+                    }
                     className="pr-10"
                     {...register("smtpPass")}
                   />
@@ -250,9 +254,18 @@ export function AdminEmailForm({
                     {tk(errors.smtpPass.message)}
                   </p>
                 )}
-                <p className="text-xs text-muted-foreground">
-                  {t("admin.email.appPasswordHint")}
-                </p>
+                {settings.hasPassword || settings.configured ? (
+                  <div className="flex items-center gap-1.5 text-xs text-emerald-400 font-medium pt-0.5">
+                    <ShieldCheck className="size-3.5 text-emerald-500 shrink-0" />
+                    <span>
+                      Password configured & secured. Leave blank to keep the current password, or enter a new 16-digit app password to update.
+                    </span>
+                  </div>
+                ) : (
+                  <p className="text-xs text-muted-foreground">
+                    {t("admin.email.appPasswordHint")}
+                  </p>
+                )}
               </div>
 
               {/* Switches */}

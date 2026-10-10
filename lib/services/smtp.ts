@@ -52,6 +52,7 @@ export async function getSmtpSettings(): Promise<SmtpSettings> {
     secure,
     enabled,
     configured: Boolean(user && pass),
+    hasPassword: Boolean(pass),
   };
 }
 
@@ -59,7 +60,7 @@ export async function saveSmtpSettings(settings: {
   host: string;
   port: number;
   user: string;
-  pass: string;
+  pass?: string;
   fromName: string;
   secure: boolean;
   enabled: boolean;
@@ -67,15 +68,20 @@ export async function saveSmtpSettings(settings: {
   const supabase = createAdminClient();
   const now = new Date().toISOString();
 
-  const updates = [
+  const updates: { key: string; value: string }[] = [
     { key: "smtp_host", value: settings.host.trim() },
     { key: "smtp_port", value: String(settings.port) },
     { key: "smtp_user", value: settings.user.trim() },
-    { key: "smtp_pass", value: settings.pass.trim() },
     { key: "smtp_from_name", value: settings.fromName.trim() },
     { key: "smtp_secure", value: String(settings.secure) },
     { key: "smtp_enabled", value: String(settings.enabled) },
   ];
+
+  // Only update the App Password if the Super Admin actually entered a new one.
+  // If left blank/empty, the existing saved password remains safe and unchanged.
+  if (settings.pass && settings.pass.trim().length > 0) {
+    updates.push({ key: "smtp_pass", value: settings.pass.trim() });
+  }
 
   for (const item of updates) {
     await supabase.from("system_settings").upsert(

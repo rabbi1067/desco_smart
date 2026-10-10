@@ -29,9 +29,9 @@ export default async function DashboardLayout({
   ]);
 
   return (
-    <div className="flex min-h-dvh flex-col">
-      {/* Topbar */}
-      <header className="sticky top-0 z-40 border-b border-border/60 bg-background/80 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+    <div className="flex h-screen w-full flex-col overflow-hidden bg-background">
+      {/* Topbar: Permanently locked at top */}
+      <header className="h-16 shrink-0 border-b border-border/60 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80 z-50">
         <div className="flex h-16 items-center gap-3 px-4 sm:px-6">
           <MobileNav isAdmin={admin} />
           <Logo />
@@ -49,30 +49,29 @@ export default async function DashboardLayout({
         </div>
       </header>
 
-      <div className="flex flex-1">
-        {/* Desktop sidebar */}
-        <aside className="sticky top-16 hidden h-[calc(100dvh-4rem)] w-64 shrink-0 border-r border-border/60 lg:flex">
-          <div className="flex h-full w-full flex-col overflow-y-auto p-4">
-            <SidebarNav isAdmin={admin} />
-          </div>
+      {/* Main app body */}
+      <div className="flex flex-1 min-h-0 overflow-hidden">
+        {/* Desktop sidebar: Permanently locked on the left, does not scroll with main content */}
+        <aside className="hidden w-64 shrink-0 border-r border-border/60 lg:flex flex-col overflow-y-auto bg-background/95 p-4 select-none">
+          <SidebarNav isAdmin={admin} />
         </aside>
 
-        {/* Main content */}
-        <main className="min-w-0 flex-1">
-          <div className="mx-auto max-w-6xl px-4 py-6 sm:px-6 sm:py-8">
+        {/* Main content: ONLY this container scrolls vertically! */}
+        <main className="flex-1 min-h-0 overflow-y-auto w-full bg-background/40">
+          <div className="w-full max-w-[1700px] mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 min-h-[calc(100vh-4rem-4rem)]">
             {children}
           </div>
+
+          <footer className="border-t border-border/60 py-4 mt-8">
+            <p className="px-4 text-center text-xs text-muted-foreground sm:px-6">
+              <Link href="/" className="hover:text-foreground">
+                DESCO SMART
+              </Link>{" "}
+              © {new Date().getFullYear()}
+            </p>
+          </footer>
         </main>
       </div>
-
-      <footer className="border-t border-border/60 py-4">
-        <p className="px-4 text-center text-xs text-muted-foreground sm:px-6">
-          <Link href="/" className="hover:text-foreground">
-            DESCO SMART
-          </Link>{" "}
-          © {new Date().getFullYear()}
-        </p>
-      </footer>
     </div>
   );
 }

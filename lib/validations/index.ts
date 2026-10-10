@@ -232,7 +232,7 @@ export const smtpSettingsSchema = z.object({
   smtpHost: z.string().trim().min(1, key("validation.required")),
   smtpPort: z.coerce.number().min(1).max(65535),
   smtpUser: z.string().trim().email(key("validation.email")),
-  smtpPass: z.string().trim().min(1, key("validation.required")),
+  smtpPass: z.string().optional().or(z.literal("")),
   smtpFromName: z.string().trim().min(1, key("validation.required")),
   smtpSecure: z.boolean().default(false),
   smtpEnabled: z.boolean().default(true),

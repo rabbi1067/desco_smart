@@ -10,6 +10,7 @@ import { UserMenu } from "@/components/dashboard/user-menu";
 import { NotificationBell } from "@/components/dashboard/notification-bell";
 import { AdminNav } from "@/components/admin/admin-nav";
 import { AdminMobileNav } from "@/components/admin/admin-mobile-nav";
+import { AdminHeaderSearch } from "@/components/admin/admin-header-search";
 
 /**
  * Super Admin shell.
@@ -33,8 +34,9 @@ export default async function AdminLayout({
   const isSuper = profile.role === "super_admin";
 
   return (
-    <div className="flex min-h-dvh flex-col">
-      <header className="sticky top-0 z-40 border-b border-border/60 bg-background/80 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+    <div className="flex h-screen w-full flex-col overflow-hidden bg-background">
+      {/* Topbar: Permanently locked at top */}
+      <header className="h-16 shrink-0 border-b border-border/60 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80 z-50">
         <div className="flex h-16 items-center gap-3 px-4 sm:px-6">
           <AdminMobileNav isSuperAdmin={isSuper} />
           <Logo />
@@ -42,18 +44,9 @@ export default async function AdminLayout({
             {isSuper ? "Super Admin" : "Admin"}
           </Badge>
 
-          {/* Central Search Bar like OrbitAdmin */}
-          <div className="hidden md:flex items-center flex-1 max-w-sm mx-6">
-            <div className="relative w-full">
-              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-xs">
-                🔍
-              </span>
-              <input
-                type="text"
-                placeholder="Search anything (meters, accounts, users)..."
-                className="w-full h-8 pl-8 pr-3 text-xs bg-gray-900 border border-gray-800 rounded-xl text-gray-200 placeholder:text-gray-500 focus:outline-none focus:border-emerald-500/60"
-              />
-            </div>
+          {/* Central Live Search Bar */}
+          <div className="hidden md:flex items-center flex-1 max-w-md mx-6">
+            <AdminHeaderSearch />
           </div>
 
           <div className="ml-auto flex items-center gap-2">
@@ -70,28 +63,29 @@ export default async function AdminLayout({
         </div>
       </header>
 
-      <div className="flex flex-1">
-        <aside className="sticky top-16 hidden h-[calc(100dvh-4rem)] w-64 shrink-0 border-r border-border/60 lg:flex">
-          <div className="flex h-full w-full flex-col overflow-y-auto p-4">
-            <AdminNav isSuperAdmin={isSuper} />
-          </div>
+      {/* Main app body */}
+      <div className="flex flex-1 min-h-0 overflow-hidden">
+        {/* Sidebar: Permanently locked on the left, does not scroll with main page */}
+        <aside className="hidden w-64 shrink-0 border-r border-border/60 lg:flex flex-col overflow-y-auto bg-background/95 p-4 select-none">
+          <AdminNav isSuperAdmin={isSuper} />
         </aside>
 
-        <main className="min-w-0 flex-1">
-          <div className="mx-auto max-w-6xl px-4 py-6 sm:px-6 sm:py-8">
+        {/* Main Content: ONLY this container scrolls vertically! */}
+        <main className="flex-1 min-h-0 overflow-y-auto w-full bg-background/40">
+          <div className="w-full max-w-[1700px] mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 min-h-[calc(100vh-4rem-4rem)]">
             {children}
           </div>
+
+          <footer className="border-t border-border/60 py-4 mt-8">
+            <p className="px-4 text-center text-xs text-muted-foreground sm:px-6">
+              <Link href="/admin" className="hover:text-foreground">
+                DESCO SMART
+              </Link>{" "}
+              · {t("admin.executiveControl")}
+            </p>
+          </footer>
         </main>
       </div>
-
-      <footer className="border-t border-border/60 py-4">
-        <p className="px-4 text-center text-xs text-muted-foreground sm:px-6">
-          <Link href="/admin" className="hover:text-foreground">
-            DESCO SMART
-          </Link>{" "}
-          · {t("admin.executiveControl")}
-        </p>
-      </footer>
     </div>
   );
 }

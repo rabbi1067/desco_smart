@@ -173,6 +173,7 @@ export interface SmtpSettings {
   secure: boolean;
   enabled: boolean;
   configured: boolean;
+  hasPassword?: boolean;
 }
 
 /** A meter joined with its owner — used only in Super Admin views. */
